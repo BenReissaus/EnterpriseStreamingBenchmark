@@ -1,0 +1,7 @@
+---
+
+- hosts: slaves
+  user: Benjamin.Reissaus
+  roles:
+    - ssh-key-distribute
+  become: true
