@@ -1,0 +1,7 @@
+---
+
+- hosts: all_nodes
+  user: Benjamin.Reissaus
+  roles:
+    - user-config
+  become: true
