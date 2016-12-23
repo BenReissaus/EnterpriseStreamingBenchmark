@@ -1,6 +1,6 @@
 ---
 
-- name: Fetch public key from master
+- name: Distribute public key to all slaves.
   authorized_key:
     user: benchmarker
     state: present
