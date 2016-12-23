@@ -10,3 +10,4 @@
     name: benchmarker
     groups: benchmarking
     append: true
+    generate_ssh_key: yes
