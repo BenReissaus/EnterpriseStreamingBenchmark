@@ -1,0 +1,9 @@
+---
+mirror_url: "http://www-eu.apache.org/dist/flink/"
+flink_version: "1.1.2"
+hadoop_version: "bin-hadoop27"
+scala_version: "scala_2.11"
+flink_package_name: "flink-{{ flink_version }}-{{ hadoop_version }}-{{ scala_version }}.tgz"
+flink_package_url: "{{ mirror_url }}/flink-{{ flink_version }}/{{ flink_package_name }}"
+download_path: "/home/benchmarker/{{ flink_package_name }}"
+installation_path: "/opt/"

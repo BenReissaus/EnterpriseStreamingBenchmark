@@ -1,0 +1,8 @@
+---
+
+- hosts: streaming_cluster
+  user: Benjamin.Reissaus
+  roles: 
+    - flink-config
+  become: yes
+  
