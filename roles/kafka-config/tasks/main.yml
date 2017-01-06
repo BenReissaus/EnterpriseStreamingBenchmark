@@ -1,0 +1,6 @@
+---
+
+- include: tasks/kafka-config.yml
+  tags:
+    - config
+
