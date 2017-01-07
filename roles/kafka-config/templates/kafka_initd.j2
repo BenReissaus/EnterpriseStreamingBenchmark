@@ -1,45 +1,118 @@
-DAEMON_PATH=/opt/kafka/bin
-DAEMON_NAME=kafka
-# Check that networking is up.
-#[ ${NETWORKING} = "no" ] && exit 0
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          skeleton
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Example initscript
+# Description:       This file should be used to construct scripts to be
+#                    placed in /etc/init.d.
+### END INIT INFO
 
-PATH=$PATH:$DAEMON_PATH
+# Author: Foo Bar <foobar@baz.org>
+#
+# Please remove the "Author" lines above and replace them
+# with your own name if you copy and modify this script.
 
-# See how we were called.
-case "$1" in
-  start)
-        # Start daemon.
-        echo "Starting $DAEMON_NAME";
-        nohup $DAEMON_PATH/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
-        ;;
-  stop)
+# Do NOT "set -e"
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+KAFKA_PATH=/opt/kafka/bin
+NAME=kafka
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.2-14) to ensure that this file is present
+# and status_of_proc is working.
+. /lib/lsb/init-functions
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+	echo "Starting Apache Kafka."
+        start-stop-daemon --start --quiet --pidfile $PIDFILE --background --no-close --exec $KAFKA_PATH/kafka-server-start.sh -- "/opt/kafka/config/server.properties" > /opt/kafka/kafka.log 2> /opt/kafka/kafka.err
+        #start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $KAFKA_PATH/kafka-server-start.sh -- "/opt/kafka/config/server.properties" > /opt/kafka/kafka.log 2> /opt/kafka/kafka.err
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
         # Stop daemons.
-        echo "Shutting down $DAEMON_NAME";
+        echo "Shutting down Apache Kafka.";
         pid=`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print $1}'`
         if [ -n "$pid" ]
           then
           kill -9 $pid
         else
-          echo "Kafka was not Running"
+          echo "Apache Kafka was not running."
         fi
-        ;;
-  restart)
-        $0 stop
-        sleep 2
-        $0 start
-        ;;
-  status)
-        pid=`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print $1}'`
+}
+
+#
+# Function that prints the status
+#
+do_status()
+{
+       pid=`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print $1}'`
         if [ -n "$pid" ]
           then
-          echo "Kafka is Running as PID: $pid"
+          echo "Apache Kafka is Running as PID: $pid"
         else
-          echo "Kafka is not Running"
+          echo "Apache Kafka is not running."
         fi
-        ;;
+}
+
+
+case "$1" in
+  start)
+	do_start
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  stop)
+	do_stop
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  status)
+	do_status
+	;;
+
+  restart)
+	log_daemon_msg "Restarting Apache Kafka Server."
+	do_stop
+	case "$?" in
+	  0|1)
+		do_start
+		case "$?" in
+			0) log_end_msg 0 ;;
+			1) log_end_msg 1 ;; # Old process is still running
+			*) log_end_msg 1 ;; # Failed to start
+		esac
+		;;
+	  *)
+		# Failed to stop
+		log_end_msg 1
+		;;
+	esac
+	;;
   *)
-        echo "Usage: $0 {start|stop|restart|status}"
-        exit 1
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart}" >&2
+	exit 3
+	;;
 esac
 
-exit 0
+:
