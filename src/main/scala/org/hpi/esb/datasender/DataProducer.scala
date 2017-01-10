@@ -7,7 +7,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.util.Logging
 
 
-class DataProducer(filePath: String) extends Logging {
+class DataProducer(dataInputPath: String) extends Logging {
 
   val props = new Properties()
   props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092")
@@ -18,7 +18,7 @@ class DataProducer(filePath: String) extends Logging {
 
   val producer = new KafkaProducer[String, String](props)
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1)
-  val dataReader = new DataReader(filePath)
+  val dataReader = new DataReader(dataInputPath)
 
   val topic = "NEW_DEBS_IN"
 
@@ -29,16 +29,12 @@ class DataProducer(filePath: String) extends Logging {
     logger.info("Shut data producer down.")
   }
 
-  def execute(period: Int): Unit = {
-
+  def execute(): Unit = {
     val initialDelay = 0
-    val unit = TimeUnit.NANOSECONDS
+    val period = 1
+    val unit = TimeUnit.MILLISECONDS
 
     val producerThread = new DataProducerThread(this, producer, dataReader, topic)
     producerThread.call(executor, initialDelay, period, unit)
-
-    //  producer.metrics().foreach { case (m1, m2) => {
-    //    println(s"metric name: ${m2.metricName()} value: ${m2.value()}")
-    //  }}
   }
 }

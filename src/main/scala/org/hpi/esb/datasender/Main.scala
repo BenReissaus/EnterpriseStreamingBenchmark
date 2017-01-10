@@ -1,17 +1,24 @@
 package org.hpi.esb.datasender
+import java.nio.file.{Paths, Files}
 
-/**
-  * Created by Benjamin Reissaus on 09/01/17.
-  */
-object Main extends App {
 
-    val filePath = "/DEBS2012-AllData.txt"
-//  val filePath = "/DEBS2012-5Minutes.txt"
+object Main {
 
-  val OneMilliSecond = 1000000
-  val PointOneMilliSeconds = 100000
-  val period = OneMilliSecond
+  def main(args: Array[String]) = {
 
-  val dataProducer = new DataProducer(filePath)
-  dataProducer.execute(period)
+    if (args.length != 1){
+      println("Usage: java -jar DataSender.jar [data_file_path]")
+      System.exit(1)
+    }
+
+    val dataInputPath = args(0)
+
+    if (! Files.exists(Paths.get(dataInputPath))) {
+      println("The provided file path does not exist.")
+      System.exit(1)
+    }
+
+    val dataProducer = new DataProducer(dataInputPath)
+    dataProducer.execute()
+  }
 }

@@ -1,10 +1,10 @@
 package org.hpi.esb.datasender
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, FileReader}
 
-class DataReader(var filePath: String) {
+class DataReader(var dataInputPath: String) {
 
-  private val br = new BufferedReader(new InputStreamReader(this.getClass.getResourceAsStream(filePath)))
+  private val br = new BufferedReader(new FileReader(dataInputPath))
 
   def getLine() = {
     br.readLine()
