@@ -11,3 +11,5 @@
     groups: benchmarking
     append: true
     generate_ssh_key: yes
+
+- include: tasks/install-zsh.yml
