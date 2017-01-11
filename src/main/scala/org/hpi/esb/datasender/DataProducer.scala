@@ -7,7 +7,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.util.Logging
 
 
-class DataProducer(dataInputPath: String) extends Logging {
+class DataProducer(dataInputPath: String, topic: String) extends Logging {
 
   val props = new Properties()
   props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092")
@@ -19,8 +19,6 @@ class DataProducer(dataInputPath: String) extends Logging {
   val producer = new KafkaProducer[String, String](props)
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1)
   val dataReader = new DataReader(dataInputPath)
-
-  val topic = "NEW_DEBS_IN"
 
   def shutDown() = {
     dataReader.close()
