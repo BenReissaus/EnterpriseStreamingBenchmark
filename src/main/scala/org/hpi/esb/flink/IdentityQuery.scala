@@ -8,28 +8,29 @@ import org.apache.flink.streaming.util.serialization.SimpleStringSchema
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 
-object IdentityQuery extends App {
+object IdentityQuery {
 
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
-  val BOOTSTRAP_SERVERS = "192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092"
+  def execute(consumerTopic: String, producerTopic: String): Unit = {
 
-  // consumer setup
-  val consumerProps = new Properties()
-  consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
-  consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "Flink_ESB")
-  val consumerTopic = "NEW_DEBS_IN"
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    val BOOTSTRAP_SERVERS = "192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092"
 
-  // producer setup
-  val producerProps = new Properties()
-  producerProps.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
-  val producerTopic = "NEW_DEBS_OUT"
+    // consumer setup
+    val consumerProps = new Properties()
+    consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
+    consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "Flink_ESB")
 
-  // consume stream
-  val stream = env.addSource(new FlinkKafkaConsumer010[String](consumerTopic, new SimpleStringSchema(), consumerProps))
-  stream.print()
+    // producer setup
+    val producerProps = new Properties()
+    producerProps.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
 
-  // produce stream
-  FlinkKafkaProducer010.writeToKafkaWithTimestamps(stream, producerTopic, new SimpleStringSchema(), producerProps)
+    // consume stream
+    val stream = env.addSource(new FlinkKafkaConsumer010[String](consumerTopic, new SimpleStringSchema(), consumerProps))
+    stream.print()
 
-  env.execute("Flink Kafka Example")
+    // produce stream
+    FlinkKafkaProducer010.writeToKafkaWithTimestamps(stream, producerTopic, new SimpleStringSchema(), producerProps)
+
+    val executionResult = env.execute("ESB - Flink Identity Query")
+  }
 }

@@ -7,5 +7,7 @@ lazy val mainRunner = project.in(file("mainRunner")).dependsOn(RootProject(file(
       } else {
         module
       }
-  }
+  },
+  scalaVersion := "2.11.8",
+  resolvers += "Apache Development Snapshot Repository" at "https://repository.apache.org/content/repositories/snapshots/"
 )
