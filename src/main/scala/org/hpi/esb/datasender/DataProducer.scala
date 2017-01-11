@@ -32,7 +32,7 @@ class DataProducer(dataInputPath: String, period: Long, topic: String) extends L
 
   def execute(): Unit = {
     val initialDelay = 0
-    val unit = TimeUnit.MILLISECONDS
+    val unit = TimeUnit.MICROSECONDS
     val producerThread = new DataProducerThread(this, producer, dataReader, topic)
 
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, period, unit)

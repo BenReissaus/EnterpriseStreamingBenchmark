@@ -8,7 +8,7 @@ object Main {
   def main(args: Array[String]) = {
 
     if (args.length != 3) {
-      println("Usage: java -jar DataSender.jar [data_file_path] [data_producer_period] [kafka_topic]")
+      println("Usage: java -jar DataSender.jar [data_file_path] [data_producer_period_micro_seconds] [kafka_topic]")
       System.exit(1)
     }
 
