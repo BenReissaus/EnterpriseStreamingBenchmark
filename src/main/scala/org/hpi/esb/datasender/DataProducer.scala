@@ -1,13 +1,13 @@
 package org.hpi.esb.datasender
 
 import java.util.Properties
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.util.Logging
 
 
-class DataProducer(dataInputPath: String, topic: String) extends Logging {
+class DataProducer(dataInputPath: String, period: Long, topic: String) extends Logging {
 
   val props = new Properties()
   props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092")
@@ -20,7 +20,10 @@ class DataProducer(dataInputPath: String, topic: String) extends Logging {
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1)
   val dataReader = new DataReader(dataInputPath)
 
+  var t: ScheduledFuture[_] = _
+
   def shutDown() = {
+    t.cancel(false)
     dataReader.close()
     producer.close()
     executor.shutdown()
@@ -29,10 +32,10 @@ class DataProducer(dataInputPath: String, topic: String) extends Logging {
 
   def execute(): Unit = {
     val initialDelay = 0
-    val period = 1
     val unit = TimeUnit.MILLISECONDS
-
     val producerThread = new DataProducerThread(this, producer, dataReader, topic)
-    producerThread.call(executor, initialDelay, period, unit)
+
+    t = executor.scheduleAtFixedRate(producerThread, initialDelay, period, unit)
+    logger.info("Start sending messages to Apache Kafka.")
   }
 }
