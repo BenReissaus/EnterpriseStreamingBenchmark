@@ -15,6 +15,6 @@ bench03 ansible_host=vm-hesse-bench03.eaalab.hpi.uni-potsdam.de
 bench04 ansible_host=vm-hesse-bench04.eaalab.hpi.uni-potsdam.de
 
 [kafka_cluster]
-kafka ansible_host=vm-hesse-kafka.eaalab.hpi.uni-potsdam.de
-flink ansible_host=vm-hesse-flink.eaalab.hpi.uni-potsdam.de
-#spark ansible_host=vm-hesse-spark.eaalab.hpi.uni-potsdam.de
+kafka ansible_host=192.168.30.208
+spark ansible_host=192.168.30.207
+flink ansible_host=192.168.30.141

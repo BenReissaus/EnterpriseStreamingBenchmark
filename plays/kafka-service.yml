@@ -1,7 +1,6 @@
 ---
 
 - hosts: kafka_cluster
-  user: Benjamin.Reissaus
   roles:
     - kafka-service
   become: true
