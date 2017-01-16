@@ -1,6 +1,14 @@
 ---
 
-- include: tasks/kafka-config.yml
-  tags:
-    - config
+- name: Copy Apache Kafka configuration.
+  template:
+    src=server.properties.j2
+    dest=/opt/kafka/config/server.properties
+    owner=Guenter.Hesse group=users
+    mode=777
 
+- name: Set up Kafka Service.
+  copy:
+    src=kafka_initd
+    dest=/etc/init.d/kafka
+    mode=0755

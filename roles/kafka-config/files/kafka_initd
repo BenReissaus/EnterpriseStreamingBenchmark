@@ -38,7 +38,6 @@ do_start()
 {
 	echo "Starting Apache Kafka."
         start-stop-daemon --start --quiet --pidfile $PIDFILE --background --no-close --exec $KAFKA_PATH/kafka-server-start.sh -- "/opt/kafka/config/server.properties" > /opt/kafka/kafka.log 2> /opt/kafka/kafka.err
-        #start-stop-daemon --start --quiet --pidfile $PIDFILE --make-pidfile --background --exec $KAFKA_PATH/kafka-server-start.sh -- "/opt/kafka/config/server.properties" > /opt/kafka/kafka.log 2> /opt/kafka/kafka.err
 }
 
 #
@@ -47,10 +46,26 @@ do_start()
 do_stop()
 {
         # Stop daemons.
-        echo "Shutting down Apache Kafka.";
         pid=`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print $1}'`
         if [ -n "$pid" ]
           then
+          echo "Shutting down Apache Kafka.";
+	  kill -s TERM $pid
+        else
+          echo "Apache Kafka was not running."
+        fi
+}
+
+#
+# Function that hard kills the daemon/service
+#
+do_hard_stop()
+{
+        # Stop daemons.
+        pid=`ps ax | grep -i 'kafka.Kafka' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          echo "Shutting down Apache Kafka.";
           kill -9 $pid
         else
           echo "Apache Kafka was not running."
@@ -71,7 +86,6 @@ do_status()
         fi
 }
 
-
 case "$1" in
   start)
 	do_start
@@ -87,12 +101,18 @@ case "$1" in
 		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
 	esac
 	;;
+  hard_stop)
+	do_hard_stop
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
   status)
 	do_status
 	;;
 
   restart)
-	log_daemon_msg "Restarting Apache Kafka Server."
 	do_stop
 	case "$?" in
 	  0|1)
@@ -110,7 +130,7 @@ case "$1" in
 	esac
 	;;
   *)
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|hard_stop|status|restart}" >&2
 	exit 3
 	;;
 esac
