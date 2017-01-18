@@ -7,7 +7,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.util.Logging
 
 
-class DataProducer(dataInputPath: String, period: Long, topic: String) extends Logging {
+class DataProducer(producerConfig: DataProducerConfig) extends Logging {
 
   val props = new Properties()
   props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092")
@@ -18,7 +18,7 @@ class DataProducer(dataInputPath: String, period: Long, topic: String) extends L
 
   val producer = new KafkaProducer[String, String](props)
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1)
-  val dataReader = new DataReader(dataInputPath)
+  val dataReader = new DataReader(producerConfig.dataInputPath)
 
   var t: ScheduledFuture[_] = _
 
@@ -33,9 +33,9 @@ class DataProducer(dataInputPath: String, period: Long, topic: String) extends L
   def execute(): Unit = {
     val initialDelay = 0
     val unit = TimeUnit.MICROSECONDS
-    val producerThread = new DataProducerThread(this, producer, dataReader, topic)
+    val producerThread = new DataProducerThread(this, producer, dataReader, producerConfig.kafkaTopic, producerConfig.sendWholeMessage)
 
-    t = executor.scheduleAtFixedRate(producerThread, initialDelay, period, unit)
+    t = executor.scheduleAtFixedRate(producerThread, initialDelay, producerConfig.dataProducerPeriod, unit)
     logger.info("Start sending messages to Apache Kafka.")
   }
 }

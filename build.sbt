@@ -1,7 +1,8 @@
 libraryDependencies ++= Seq(
   "org.apache.kafka" % "kafka-clients" % "0.10.1.0",
   "org.slf4j" % "slf4j-jdk14" % "1.7.5",
-  "log4j" % "log4j" % "1.2.14"
+  "log4j" % "log4j" % "1.2.14",
+  "com.github.scopt" %% "scopt" % "3.5.0"
 )
 
 lazy val root = (project in file("."))
