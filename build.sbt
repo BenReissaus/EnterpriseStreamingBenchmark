@@ -8,12 +8,17 @@ val flinkDependencies = Seq(
   "org.apache.flink" %% "flink-connector-kafka-0.10" % flinkVersion
 )
 
+val testDependencies = Seq(
+  "org.scalactic" % "scalactic_2.11" % "3.0.1",
+  "org.scalatest" % "scalatest_2.11" % "3.0.1" % "test"
+)
+
 lazy val root = (project in file(".")).
   settings(
     name := "ESB-Flink",
     version := "0.1-SNAPSHOT",
     organization := "org.hpi",
-    libraryDependencies ++= flinkDependencies
+    libraryDependencies ++= (flinkDependencies ++ testDependencies)
   )
 
 mainClass in (Compile,run) := Some("org.hpi.esb.flink.Main")
