@@ -1,14 +1,17 @@
 package org.hpi.esb.datasender
 
-import java.io.{BufferedReader, FileReader}
-
 class DataReader(var dataInputPath: String) {
 
-  private val br = new BufferedReader(new FileReader(dataInputPath))
+  private val bufferedSource: io.BufferedSource = io.Source.fromFile(dataInputPath)
+  private val dataIterator: Iterator[String] = bufferedSource.asInstanceOf[io.Source].getLines
 
-  def getLine() = {
-    br.readLine()
+  def getLine: String = {
+      if (dataIterator.hasNext) {
+        dataIterator.next
+      } else {
+        null
+      }
   }
 
-  def close() = br.close()
+  def close = bufferedSource.close
 }
