@@ -11,7 +11,7 @@ class StatisticsQuery extends Query[String, String] {
   override def execute(stream: DataStream[String]): DataStream[String] = {
 
    stream
-     .map(s => s.split("\\s+")(3).toLong)
+     .map(_.toLong)
      .timeWindowAll(Time.milliseconds(1000))
      .fold(new Statistics(), new StatisticsFoldFunction())
      .map(v => v.toString())
