@@ -4,7 +4,7 @@ import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
 trait Logging {
-  val logger = Logger.getLogger(this.getClass)
+  var logger = Logger.getLogger(this.getClass)
 }
 
 object Logging {

@@ -3,9 +3,8 @@ package org.hpi.esb.datasender
 import java.util.Properties
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
-import org.hpi.esb.conf.configs.DataSenderConfig
+import org.hpi.esb.conf.Config.DataSenderConfig
 import org.hpi.esb.util.Logging
-
 
 class DataProducer(producerConfig: DataSenderConfig) extends Logging {
 
@@ -14,7 +13,7 @@ class DataProducer(producerConfig: DataSenderConfig) extends Logging {
   props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, producerConfig.kafkaProducer.keySerializerClass)
   props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, producerConfig.kafkaProducer.valueSerializerClass)
   props.put(ProducerConfig.ACKS_CONFIG, producerConfig.kafkaProducer.acks)
-  props.put(ProducerConfig.BATCH_SIZE_CONFIG, producerConfig.kafkaProducer.batchSize)
+  props.put(ProducerConfig.BATCH_SIZE_CONFIG, producerConfig.kafkaProducer.batchSize.toString)
 
   val producer = new KafkaProducer[String, String](props)
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(producerConfig.numberOfThreads) //passing number of threads in pool
@@ -22,7 +21,7 @@ class DataProducer(producerConfig: DataSenderConfig) extends Logging {
 
   var t: ScheduledFuture[_] = _
 
-  def shutDown() = {
+  def shutDown(): Unit = {
     t.cancel(false)
     dataReader.close
     producer.close()
@@ -32,7 +31,15 @@ class DataProducer(producerConfig: DataSenderConfig) extends Logging {
 
   def execute(): Unit = {
     val initialDelay = 0
-    val producerThread = new DataProducerThread(this, producer, dataReader, producerConfig.kafkaTopic, producerConfig.columnToBeSend, producerConfig.columnDelimiter)
+
+    val producerThread = new DataProducerThread(
+      dataProducer = this,
+      kafkaProducer = producer,
+      dataReader = dataReader,
+      topicList = producerConfig.dataModel.columns,
+      columnDelimiter = producerConfig.columnDelimiter,
+      columnStartOption = producerConfig.dataModel.columnStart,
+      columnEndOption = producerConfig.dataModel.columnEnd)
 
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, producerConfig.sendingInterval, TimeUnit.MICROSECONDS)
     logger.info("Start sending messages to Apache Kafka.")
