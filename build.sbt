@@ -1,7 +1,6 @@
-resolvers in ThisBuild ++= Seq("Apache Development Snapshot Repository" at "https://repository.apache.org/content/repositories/snapshots/", Resolver.mavenLocal)
 scalaVersion in ThisBuild := "2.11.8"
 
-val flinkVersion = "1.2-SNAPSHOT"
+val flinkVersion = "1.2.0"
 val flinkDependencies = Seq(
   "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
   "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
