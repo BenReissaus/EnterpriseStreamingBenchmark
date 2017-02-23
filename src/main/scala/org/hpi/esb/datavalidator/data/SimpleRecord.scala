@@ -1,8 +1,10 @@
 package org.hpi.esb.datavalidator.data
 
+import scala.util.Try
+
 object SimpleRecord extends Record[SimpleRecord] {
-  override def create(value: String): SimpleRecord = {
-    new SimpleRecord(value.toLong)
+  override def deserialize(value: String): Try[SimpleRecord] = {
+    Try(new SimpleRecord(value.toLong))
   }
 }
 

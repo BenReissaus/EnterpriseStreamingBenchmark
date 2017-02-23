@@ -13,9 +13,11 @@ class Validator extends Configurable with Logging {
     val records = consumer.consume()
 
     val validations = List(
-      new IdentityValidation(config.topics.inTopic, config.topics.outTopic),
-      new StatisticsValidation(config.topics.inTopic, config.topics.statsTopic, config.windowSize)
+      new IdentityValidation(records.getTopicResults(config.topics.inTopic),
+        records.getTopicResults(config.topics.outTopic)),
+      new StatisticsValidation(records.getTopicResults(config.topics.inTopic),
+        records.getTopicResults(config.topics.statsTopic), config.windowSize)
     )
-    validations.foreach(_.execute(records))
+    validations.foreach(_.fulfillsRequirements())
   }
 }

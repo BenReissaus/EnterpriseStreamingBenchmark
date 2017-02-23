@@ -1,52 +1,85 @@
 package org.hpi.esb.datavalidator.validation
 
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.hpi.esb.datavalidator.config.Configurable
-import org.hpi.esb.datavalidator.consumer.Records
 import org.hpi.esb.datavalidator.data.{SimpleRecord, Statistics}
 import org.hpi.esb.datavalidator.util.Logging
 
-class StatisticsValidation(inTopic: String, statsTopic: String, windowSize: Long) extends ResultValidation with Configurable with Logging {
+import scala.collection.mutable.ListBuffer
+import scala.util.{Failure, Success}
 
-  override def execute(results: Records): Boolean = {
-    val source = results.getTopicResults(inTopic)
-    val sink = results.getTopicResults(statsTopic)
-    val sinkLength = sink.length
+class StatisticsValidation(inRecords: ListBuffer[ConsumerRecord[String, String]],
+                           resultRecords: ListBuffer[ConsumerRecord[String, String]], windowSize: Long)
+  extends ResultValidation(inRecords, resultRecords) with Configurable with Logging {
 
-    val window = new Window(windowSize, source.head.timestamp())
-    var statsCount = 0
-    var goldStats = new Statistics()
+  val window = new StatisticsWindow(windowSize)
 
-    for (record <- source) {
+  override def fulfillsRequirements(): Boolean = {
 
-      if (!window.contains(record.timestamp())) {
+    if (recordsAreIncomplete()) {
+      return false
+    }
 
-        if (statsCount >= sinkLength) {
-          logger.info(s"Invalid statistics query: Too few statistics were calculated.")
+    window.setInitialWindowEnd(inRecords.head.timestamp())
+    val resultIter = resultRecords.toIterator
+
+    inRecords.foreach(record => {
+
+      if (!window.containsTimestamp(record.timestamp())) {
+        if (!isValidWindow(resultIter)) {
           return false
         }
-
-        // validate last window
-        val streamStats = Statistics.create(sink(statsCount).value())
-        if (!isValidStatisticsWindow(goldStats, streamStats)) {
-          logger.info(s"Invalid statistics query. WindowEnd: ${window.windowEnd} GoldStats: ${goldStats.prettyPrint} StreamStats: ${streamStats.prettyPrint}")
-          return false
-        }
-
-        // prepare next window
-        statsCount += 1
-        goldStats = new Statistics()
-        window.updateWindowEnd()
+        window.update()
       }
 
-      // add next value to statistics
-      goldStats = goldStats.addValue(SimpleRecord.create(record.value()))
+      // TODO: use custom kafka deserializer interface instead
+      val simpleRecord = SimpleRecord.deserialize(record.value()) match {
+        case Success(v) => v
+        case Failure(ex) => println(s"Invalid statistics query: The string '${record.value()}' is not a valid simple record serialization. ${ex.getMessage}."); return false
+      }
+      window.addValue(simpleRecord.value)
+    })
+
+    // evaluate last window
+    if (!isValidWindow(resultIter)) {
+      return false
     }
+
+    if (resultIter.nonEmpty) {
+      logger.info(s"Invalid statistics query: Too many statistics were calculated.")
+      return false
+    }
+
     logger.info(s"Valid statistics query results.")
     true
   }
 
-  def isValidStatisticsWindow(realStats: Statistics, streamStats: Statistics): Boolean = {
-    streamStats == realStats
+  private def isValidWindow(resultIter: Iterator[ConsumerRecord[String, String]]): Boolean = {
+
+    if (!resultIter.hasNext) {
+      logger.info(s"Invalid statistics query: Too few statistics were calculated.")
+      return false
+    }
+    val serializedStats = resultIter.next().value()
+
+    val streamStats = Statistics.deserialize(serializedStats) match {
+      case Success(stats) => stats
+      case Failure(ex) => println(s"Invalid statistics query: The string '$serializedStats' is not a valid statistics object serialization. ${ex.getMessage}."); return false
+    }
+    if (!areCorrectStatisticResults(streamStats, window.stats)) {
+      return false
+    }
+
+    true
+  }
+
+  private def areCorrectStatisticResults(streamStats: Statistics, goldStats: Statistics): Boolean = {
+    if (window.stats != streamStats) {
+      logger.info(s"Invalid statistics query: Incorrect Results. WindowEnd: ${window.windowEnd} GoldStats: ${window.stats.prettyPrint} StreamStats: ${streamStats.prettyPrint}")
+      false
+    }
+    else {
+      true
+    }
   }
 }
-

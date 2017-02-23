@@ -1,9 +1,15 @@
 package org.hpi.esb.datavalidator.data
 
+import scala.util.Try
+
 object Statistics extends Record[Statistics] {
-  def create(stats: String): Statistics = {
+  def deserialize(stats: String): Try[Statistics] = {
     val values = stats.split(",")
-    this (values(0).toLong, values(1).toLong, values(2).toLong, values(3).toLong, values(4).toDouble)
+
+    if (values.length != 5) {
+      throw new IllegalArgumentException(s"5 comma-separated values were expected but not found.")
+    }
+    Try(this(values(0).toLong, values(1).toLong, values(2).toLong, values(3).toLong, values(4).toDouble))
   }
 }
 
@@ -11,9 +17,8 @@ case class Statistics(var min: Long = Long.MaxValue, var max: Long = Long.MinVal
                       var sum: Long = 0, var count: Long = 0,
                       var avg: Double = 0) {
 
-  def addValue(r: SimpleRecord): Statistics = {
+  def getUpdatedWithValue(value: Long): Statistics = {
 
-    val value = r.value
     val newCount = count + 1
     val newSum = sum + value
     val newMin = if (value < min) value else min
