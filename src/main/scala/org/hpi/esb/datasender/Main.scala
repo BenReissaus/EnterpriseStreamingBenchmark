@@ -1,11 +1,9 @@
 package org.hpi.esb.datasender
 
-import java.io.FileNotFoundException
-import org.hpi.esb.conf.Config.Config
+import org.hpi.esb.config.Config
 import org.hpi.esb.util.Logging
-import scala.util.{Failure, Success}
 import pureconfig.loadConfig
-import scalax.file.Path
+import scala.util.{Failure, Success}
 
 object Main extends Logging {
 

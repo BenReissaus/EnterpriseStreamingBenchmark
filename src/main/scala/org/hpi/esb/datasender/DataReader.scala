@@ -5,13 +5,13 @@ class DataReader(var dataInputPath: String) {
   private val bufferedSource: io.BufferedSource = io.Source.fromFile(dataInputPath)
   private val dataIterator: Iterator[String] = bufferedSource.asInstanceOf[io.Source].getLines
 
-  def getLine: String = {
+  def getLine: Option[String] = {
       if (dataIterator.hasNext) {
-        dataIterator.next
+        Option(dataIterator.next)
       } else {
-        null
+        None: Option[String]
       }
   }
 
-  def close = bufferedSource.close
+  def close(): Unit = bufferedSource.close
 }

@@ -3,7 +3,7 @@ package org.hpi.esb.datasender
 import java.util.Properties
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
-import org.hpi.esb.conf.Config.DataSenderConfig
+import org.hpi.esb.config.DataSenderConfig
 import org.hpi.esb.util.Logging
 
 class DataProducer(producerConfig: DataSenderConfig) extends Logging {
@@ -23,7 +23,7 @@ class DataProducer(producerConfig: DataSenderConfig) extends Logging {
 
   def shutDown(): Unit = {
     t.cancel(false)
-    dataReader.close
+    dataReader.close()
     producer.close()
     executor.shutdown()
     logger.info("Shut data producer down.")

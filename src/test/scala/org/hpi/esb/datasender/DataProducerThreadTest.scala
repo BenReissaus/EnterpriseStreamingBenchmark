@@ -14,7 +14,8 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   val alternativeDelimiter: String = ","
   val defaultRecord: String = "10 11 12 13 14 15"
   val recordAsValueArray: Array[String] = defaultRecord.split(s"\\$defaultColumnDelimiter")
-  val recordWithAlternativeDelimiter: String = s"10${alternativeDelimiter}11${alternativeDelimiter}12${alternativeDelimiter}13${alternativeDelimiter}14${alternativeDelimiter}15"
+  val recordWithAlternativeDelimiter: String =
+    s"10${alternativeDelimiter}11${alternativeDelimiter}12${alternativeDelimiter}13${alternativeDelimiter}14${alternativeDelimiter}15"
   val recordWithAlternativeDelimiterAsValueList: Array[String] = recordWithAlternativeDelimiter.split(s"\\$alternativeDelimiter")
   val defaultColumnStartOption: Option[Int] = Some(2)
   val defaultColumnEndOption: Option[Int] = Some(3)
@@ -29,7 +30,10 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   after {
   }
 
-  def initializeDefaultDataProducerThread(columnList: List[String] = defaultTopicList, columnDelimiter: String = defaultColumnDelimiter, columnStartOption: Option[Int] = defaultColumnStartOption, columnEndOption: Option[Int] = defaultColumnEndOption): DataProducerThread = {
+  def initializeDefaultDataProducerThread(columnList: List[String] = defaultTopicList,
+                                          columnDelimiter: String = defaultColumnDelimiter,
+                                          columnStartOption: Option[Int] = defaultColumnStartOption,
+                                          columnEndOption: Option[Int] = defaultColumnEndOption): DataProducerThread = {
     mockedKafkaProducer = mock[KafkaProducer[String, String]]
     mockedDataReader = mock[DataReader]
     mockedDataProducer = mock[DataProducer]
@@ -46,15 +50,16 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   "A DataProducerThread" should "return the specified column (idx 1)" in {
     val idx = 1
     val dataProducerThread = initializeDefaultDataProducerThread(columnStartOption = Some(idx), columnEndOption = Some(idx))
-    when(mockedDataReader.getLine).thenReturn(defaultRecord)
+    when(mockedDataReader.getLine).thenReturn(Some(defaultRecord))
     dataProducerThread.run()
     verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](defaultTopicList(idx), recordAsValueArray(idx)))
   }
 
   it should "return the specified column with column delimiter that is not default" in {
     val idx = 2
-    val dataProducerThread = initializeDefaultDataProducerThread(columnStartOption = Some(idx), columnEndOption = Some(idx), columnDelimiter = alternativeDelimiter)
-    when(mockedDataReader.getLine).thenReturn(recordWithAlternativeDelimiter)
+    val dataProducerThread = initializeDefaultDataProducerThread(columnStartOption = Some(idx), columnEndOption =
+      Some(idx), columnDelimiter = alternativeDelimiter)
+    when(mockedDataReader.getLine).thenReturn(Some(recordWithAlternativeDelimiter))
     dataProducerThread.run()
     verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](defaultTopicList(idx), recordAsValueArray(idx)))
   }
@@ -62,22 +67,23 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   it should "return a whole data record if specified, i.e. column list contains one entry" in {
     val topic = "FCM"
     val dataProducerThread = initializeDefaultDataProducerThread(columnList = List(topic), columnStartOption = None, columnEndOption = None)
-    when(mockedDataReader.getLine).thenReturn(defaultRecord)
+    when(mockedDataReader.getLine).thenReturn(Some(defaultRecord))
     dataProducerThread.run()
     verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topic, defaultRecord))
   }
 
   it should "not send a message and shutdown DataProducer if data source is empty / end is reached" in {
     val dataProducerThread = initializeDefaultDataProducerThread()
-    when(mockedDataReader.getLine).thenReturn(null)
+    when(mockedDataReader.getLine).thenReturn(None: Option[String])
     dataProducerThread.run()
     verify(mockedKafkaProducer, times(0)).send(org.mockito.ArgumentMatchers.any[ProducerRecord[String, String]])
     verify(mockedDataProducer, times(1)).shutDown()
   }
 
   it should "send correct messages to correct topics when sending each value individually" in {
-    val dataProducerThread = initializeDefaultDataProducerThread(columnList = defaultTopicList, columnStartOption = columnOptionNull, columnEndOption = columnOptionNull)
-    when(mockedDataReader.getLine).thenReturn(defaultRecord)
+    val dataProducerThread = initializeDefaultDataProducerThread(columnList = defaultTopicList, columnStartOption =
+      columnOptionNull, columnEndOption = columnOptionNull)
+    when(mockedDataReader.getLine).thenReturn(Some(defaultRecord))
     dataProducerThread.run()
     var idx: Int = 0
     for (topic <- defaultTopicList) {
@@ -87,8 +93,9 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   }
 
   it should "send correct messages to correct topics when sending each value individually - not-default column delimiter" in {
-    val dataProducerThread = initializeDefaultDataProducerThread(columnList = defaultTopicList, columnStartOption = columnOptionNull, columnEndOption = columnOptionNull, columnDelimiter = alternativeDelimiter)
-    when(mockedDataReader.getLine).thenReturn(recordWithAlternativeDelimiter)
+    val dataProducerThread = initializeDefaultDataProducerThread(columnList = defaultTopicList, columnStartOption = columnOptionNull, columnEndOption =
+      columnOptionNull, columnDelimiter = alternativeDelimiter)
+    when(mockedDataReader.getLine).thenReturn(Some(recordWithAlternativeDelimiter))
     dataProducerThread.run()
     var idx: Int = 0
     for (topic <- defaultTopicList) {
@@ -99,7 +106,7 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
 
   it should "send correct messages to correct topics when sending each value individually - first data column != 0" in {
     val dataProducerThread = initializeDefaultDataProducerThread()
-    when(mockedDataReader.getLine).thenReturn(defaultRecord)
+    when(mockedDataReader.getLine).thenReturn(Some(defaultRecord))
     dataProducerThread.run()
     for (idx <- defaultColumnStartOption.get to defaultColumnEndOption.get) {
       verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](defaultTopicList(idx), recordAsValueArray(idx)))
@@ -110,7 +117,7 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
     val dataProducerThread = initializeDefaultDataProducerThread(columnStartOption = columnOptionNull, columnEndOption = columnOptionNull)
     val val1 = "FC"
     val val2 = "Magdeburg"
-    when(mockedDataReader.getLine).thenReturn(s"$val1 $val2")
+    when(mockedDataReader.getLine).thenReturn(Some(s"$val1 $val2"))
     val mockedLogger: Logger = mock[Logger]
     dataProducerThread.logger = mockedLogger
     dataProducerThread.run()
@@ -124,7 +131,7 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
     val val1 = "FC"
     val val2 = "Magdeburg"
     val val3 = "FCM"
-    when(mockedDataReader.getLine).thenReturn(s"$val0 $val1 $val2 $val3")
+    when(mockedDataReader.getLine).thenReturn(Some(s"$val0 $val1 $val2 $val3"))
     val mockedLogger: Logger = mock[Logger]
     dataProducerThread.logger = mockedLogger
     dataProducerThread.run()
@@ -134,8 +141,9 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
 
   it should "log an error und do not send the message if there are more values than columns specified" in {
     val tooSmallTopicList: List[String] = List("1.", "FC", "Magdeburg")
-    val dataProducerThread = initializeDefaultDataProducerThread(columnList = tooSmallTopicList, columnStartOption = columnOptionNull, columnEndOption = None: Option[Int])
-    when(mockedDataReader.getLine).thenReturn(defaultRecord)
+    val dataProducerThread = initializeDefaultDataProducerThread(columnList = tooSmallTopicList, columnStartOption = columnOptionNull, columnEndOption =
+      None: Option[Int])
+    when(mockedDataReader.getLine).thenReturn(Some(defaultRecord))
     val mockedLogger: Logger = mock[Logger]
     dataProducerThread.logger = mockedLogger
     dataProducerThread.run()
@@ -146,7 +154,7 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   it should "log an error und do not send the message if there are more values than columns specified; first data col != 0)" in {
     val tooSmallTopicList: List[String] = List("1.", "FC", "Magdeburg")
     val dataProducerThread = initializeDefaultDataProducerThread(columnList = tooSmallTopicList, columnEndOption = columnOptionNull)
-    when(mockedDataReader.getLine).thenReturn(defaultRecord)
+    when(mockedDataReader.getLine).thenReturn(Some(defaultRecord))
     val mockedLogger: Logger = mock[Logger]
     dataProducerThread.logger = mockedLogger
     dataProducerThread.run()
@@ -160,7 +168,8 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
   }
 
   it should "mark line as invalid and print error if each value send individually - more values than topics" in {
-    val dataProducerThread = initializeDefaultDataProducerThread(columnList = List[String]("FC", "Magdeburg"), columnStartOption = columnOptionNull, columnEndOption = columnOptionNull)
+    val dataProducerThread = initializeDefaultDataProducerThread(columnList = List[String]("FC", "Magdeburg"), columnStartOption =
+      columnOptionNull, columnEndOption = columnOptionNull)
     val mockedLogger: Logger = mock[Logger]
     dataProducerThread.logger = mockedLogger
     assert(!dataProducerThread.isLineValid(defaultRecord))
@@ -182,5 +191,4 @@ class DataProducerThreadTest extends FlatSpec with Matchers with PrivateMethodTe
     assert(dataProducerThread.isLineValid(defaultRecord))
     verify(mockedLogger, times(0)).warn(org.mockito.ArgumentMatchers.any[String])
   }
-
 }

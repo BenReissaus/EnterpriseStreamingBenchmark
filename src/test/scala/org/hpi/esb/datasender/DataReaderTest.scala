@@ -8,8 +8,8 @@ import scalax.io.{Codec, Resource, Seekable}
 class DataReaderTest extends FlatSpec with Matchers with PrivateMethodTester with BeforeAndAfter {
 
     implicit val codec = Codec.UTF8
-    var tmpFile: Path = null
-    var dataReader: DataReader = null
+    var tmpFile: Path = _
+    var dataReader: DataReader = _
     val tmpFilePrefix = "esb_datareader_testfile"
     val tmpFileSuffix = ".tmp"
     val msgEvenLines = "FC"
@@ -28,7 +28,7 @@ class DataReaderTest extends FlatSpec with Matchers with PrivateMethodTester wit
       if (i % 2 == 0) {
         msg = msgEvenLines
       }
-      output.append(s"${msg} ${i}\n")
+      output.append(s"$msg $i\n")
     }
     dataReader = new DataReader(tmpFile.path)
   }
@@ -53,8 +53,8 @@ class DataReaderTest extends FlatSpec with Matchers with PrivateMethodTester wit
   }
 
   it should "return the correct result when reading lines" in {
-    assert(dataReader.getLine.equals(s"${msgEvenLines} 0"))
-    assert(dataReader.getLine.equals(s"${msgOddLines} 1"))
+    assert(dataReader.getLine.get.equals(s"$msgEvenLines 0"))
+    assert(dataReader.getLine.get.equals(s"$msgOddLines 1"))
   }
 
 }
