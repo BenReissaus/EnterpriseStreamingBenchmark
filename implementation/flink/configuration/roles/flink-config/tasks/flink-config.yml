@@ -1,0 +1,13 @@
+---
+
+- name: Copy Apache Flink configuration.
+  copy: 
+    src=flink-conf.yml dest="{{ installation_path }}/flink/conf/flink-conf.yaml" 
+    owner=benchmarker group=benchmarking
+    
+- name: Copy Apache Flink slaves configuration.
+  copy: 
+    src=slaves dest="{{ installation_path }}/flink/conf/slaves" 
+    owner=benchmarker group=benchmarking
+    
+

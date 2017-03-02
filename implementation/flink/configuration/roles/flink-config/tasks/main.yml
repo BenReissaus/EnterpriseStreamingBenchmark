@@ -1,0 +1,11 @@
+---
+
+- include: tasks/flink-install.yml 
+  tags:
+    - install
+- include: tasks/flink-config.yml 
+  tags:
+    - config
+- include: tasks/flink-start.yml 
+  tags:
+    - start

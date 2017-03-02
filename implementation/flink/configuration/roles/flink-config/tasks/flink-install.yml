@@ -1,0 +1,32 @@
+---
+
+- name: Download Apache Flink, Yarn version.
+  get_url: 
+    url={{ flink_package_url }} 
+    dest={{ download_path }}
+  tags:
+    - download
+
+- name: Unpack Apache Flink.
+  unarchive: 
+    src={{ download_path }}
+    dest={{ installation_path }}
+    copy=no
+    owner=benchmarker group=benchmarking
+  tags: 
+    - uncompress
+
+- name: Remove compressed file.
+  file: path={{ download_path }} state=absent 
+
+- name: Create softlink for latest Apache Flink version. 
+  file: 
+    src="{{ installation_path }}/flink-{{ flink_version }}" 
+    dest="{{ installation_path }}/flink" state=link
+    owner=benchmarker group=benchmarking
+
+- name: Add Apache Flink to PATH. 
+  file: 
+    src="{{ installation_path }}/flink/bin/flink" 
+    dest="/usr/local/bin/flink" state=link
+    owner=benchmarker group=benchmarking

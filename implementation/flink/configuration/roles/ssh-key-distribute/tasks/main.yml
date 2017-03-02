@@ -1,0 +1,8 @@
+---
+
+- name: Distribute public key to all slaves.
+  authorized_key:
+    user: benchmarker
+    state: present
+    key: "{{ lookup('file', 'tmp/id_rsa.pub') }}"
+    path: "/home/benchmarker/.ssh/authorized_keys"
