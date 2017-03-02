@@ -2,17 +2,11 @@
 
 ### Intellij+iml ###
 **/.idea/
-
-## File-based project format:
 *.iws
-
-## Plugin-specific files:
-
-# IntelliJ
-/out/
+**/out/
 
 # mpeltonen/sbt-idea plugin
-.idea_modules/
+**/.idea_modules/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
@@ -34,13 +28,13 @@ modules.xml
 ### SBT ###
 # Simple Build Tool
 # http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
-
-target/
-lib_managed/
-src_managed/
-project/boot/
+**/target/
+**/lib_managed/
+**/src_managed/
+**/project/boot/
 .history
 .cache
 
 # Ansible files
 *.retry
+
