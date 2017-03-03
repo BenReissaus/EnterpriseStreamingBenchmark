@@ -139,7 +139,7 @@ $prefix.batchSize = ${opToStr(batchSize)}"""
       if (columns.isEmpty || columns.get.isEmpty) {
         logger.error("You must specify at least one column.")
         valid = false
-      } else if (!((0 <= colStart) && (colStart <= colEnd) && (colEnd < columns.size))) {
+      } else if (!((0 <= colStart) && (colStart <= colEnd) && (colEnd < columns.get.size))) {
         logger.error(s"Invalid config: column start and column end must be >= 0 and < size of column list; additionally, " +
           s"column start must be <= column end; \n column start: $colStart, \n column end: $colEnd, \n column list: $columns")
         valid = false
