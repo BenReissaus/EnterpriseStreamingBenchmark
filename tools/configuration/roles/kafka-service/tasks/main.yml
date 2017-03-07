@@ -1,15 +1,9 @@
 ---
-- name: Start Kafka Service.
-  service: name=kafka state=started 
-  tags:
-    - start
+- include: tasks/start.yml
+  when: action == 'start'
 
-- name: Stop Kafka Service.
-  service: name=kafka state=stopped 
-  tags:
-    - stop
+- include: tasks/stop.yml
+  when: action == 'stop'
 
-- name: Restart Kafka Service.
-  service: name=kafka state=restarted 
-  tags:
-    - restart
+- include: tasks/restart.yml
+  when: action == 'restart'

@@ -13,6 +13,10 @@ object Dependencies {
     "org.apache.kafka" % "kafka-clients" % "0.10.1.0"
   )
 
+  val kafka = Seq(
+    "org.apache.kafka" % "kafka_2.11" % "0.10.1.0"
+  )
+
   val loggingDependencies = Seq(
     "org.slf4j" % "slf4j-jdk14" % "1.7.5",
     "log4j" % "log4j" % "1.2.14"

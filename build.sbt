@@ -9,7 +9,7 @@ lazy val commonSettings = Seq(
 )
 val flinkVersion = "1.2.0"
 
-lazy val root = (project in file(".")).settings(commonSettings).aggregate(datasender, validator, flinkCluster)
+lazy val root = (project in file(".")).settings(commonSettings).aggregate(datasender, validator, flinkCluster, util)
 
 lazy val datasender = (project in file("tools/datasender")).
   settings(commonSettings: _*).
@@ -38,6 +38,17 @@ lazy val validator = (project in file("tools/validator")).
     mainClass in Compile := Some("org.hpi.esb.datavalidator.Main")
   )
 
+lazy val util = (project in file("tools/util")).
+  settings(commonSettings: _*).
+  settings(
+    libraryDependencies ++= kafka,
+    libraryDependencies ++= configHandlingDependency,
+    libraryDependencies ++= testDependencies
+  ).
+  settings(
+    name := "Util"
+  )
+
 lazy val flinkCluster = (project in file("implementation/flink/application")).
   settings(commonSettings: _*).
   settings(
@@ -50,7 +61,7 @@ lazy val flinkCluster = (project in file("implementation/flink/application")).
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
   )
 
-lazy val flinkLocal = (project in file("implementation/flink/intellij")).dependsOn(flinkCluster).
+lazy val flinkLocal = (project in file("implementation/flink/local_application")).dependsOn(flinkCluster).
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= flinkDependencies(flinkVersion).map {

@@ -1,0 +1,4 @@
+---
+
+kafka_logs_path: "/home/kafka-logs/"
+repository_path: "~/Benchmarks/EnterpriseStreamingBenchmark/"
