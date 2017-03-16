@@ -16,6 +16,7 @@ class StatisticsQuery extends Query[String, String] {
      .fold(new Statistics(), new StatisticsFoldFunction())
      .map(v => v.toString())
   }
+
 }
 
 class StatisticsFoldFunction extends FoldFunction[Long, Statistics] {

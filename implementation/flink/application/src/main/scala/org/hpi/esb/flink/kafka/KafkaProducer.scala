@@ -9,7 +9,7 @@ class KafkaProducer(producerTopic: String) extends KafkaConnector {
 
   props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
 
-  def produce(stream: DataStream[String]) = {
+  def produce(stream: DataStream[String]): Unit = {
     val config = writeToKafkaWithTimestamps(stream.javaStream, producerTopic, new SimpleStringSchema(), props)
     config.setWriteTimestampToKafka(true)
   }

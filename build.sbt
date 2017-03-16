@@ -9,7 +9,20 @@ lazy val commonSettings = Seq(
 )
 val flinkVersion = "1.2.0"
 
-lazy val root = (project in file(".")).settings(commonSettings).aggregate(datasender, validator, flinkCluster, util)
+lazy val root = (project in file(".")).
+  settings(commonSettings).
+  aggregate(datasender, validator, flinkCluster, util)
+
+lazy val commons = (project in file("tools/commons")).
+  settings(commonSettings: _*).
+  settings(
+    libraryDependencies ++= configHandlingDependency,
+    libraryDependencies ++= scalaIODependencies,
+    libraryDependencies ++= loggingDependencies
+  ).
+  settings(
+    name := "Commons"
+  )
 
 lazy val datasender = (project in file("tools/datasender")).
   settings(commonSettings: _*).
@@ -22,8 +35,9 @@ lazy val datasender = (project in file("tools/datasender")).
   ).
   settings(
     name := "DataSender",
-    mainClass in Compile := Some("org.hpi.esb.datasender.Main")
-  )
+    mainClass in assembly := Some("org.hpi.esb.datasender.Main")
+  ).
+  dependsOn(commons)
 
 lazy val validator = (project in file("tools/validator")).
   settings(commonSettings: _*).
@@ -36,7 +50,8 @@ lazy val validator = (project in file("tools/validator")).
   settings(
     name := "Validator",
     mainClass in Compile := Some("org.hpi.esb.datavalidator.Main")
-  )
+  ).
+  dependsOn(commons)
 
 lazy val util = (project in file("tools/util")).
   settings(commonSettings: _*).
@@ -59,7 +74,8 @@ lazy val flinkCluster = (project in file("implementation/flink/application")).
     name := "Flink",
     mainClass in (Compile,run) := Some("org.hpi.esb.flink.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
-  )
+  ).
+  dependsOn(commons)
 
 lazy val flinkLocal = (project in file("implementation/flink/local_application")).dependsOn(flinkCluster).
   settings(commonSettings: _*).
@@ -78,5 +94,6 @@ lazy val flinkLocal = (project in file("implementation/flink/local_application")
     mainClass in (Compile,run) := Some("org.hpi.esb.flink.Main"),
     // make run command include the provided dependencies
     run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
-  )
+  ).
+  dependsOn(commons)
 

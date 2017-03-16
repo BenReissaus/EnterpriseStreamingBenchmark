@@ -18,7 +18,6 @@ object Dependencies {
   )
 
   val loggingDependencies = Seq(
-    "org.slf4j" % "slf4j-jdk14" % "1.7.5",
     "log4j" % "log4j" % "1.2.14"
   )
 
