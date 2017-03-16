@@ -1,7 +1,0 @@
----
-
-- name: Create softlink. 
-  file: 
-    src="{{ installation_path }}/flink/bin/flink" 
-    dest="/usr/local/bin/flink" state=link
-    owner=benchmarker group=benchmarking

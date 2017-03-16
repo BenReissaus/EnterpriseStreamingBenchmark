@@ -1,6 +1,6 @@
 ---
 mirror_url: "http://www-eu.apache.org/dist/flink/"
-flink_version: "1.1.2"
+flink_version: "1.2.0"
 hadoop_version: "bin-hadoop27"
 scala_version: "scala_2.11"
 flink_package_name: "flink-{{ flink_version }}-{{ hadoop_version }}-{{ scala_version }}.tgz"

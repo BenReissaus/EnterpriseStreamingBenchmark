@@ -6,6 +6,3 @@
 - include: tasks/flink-config.yml 
   tags:
     - config
-- include: tasks/flink-start.yml 
-  tags:
-    - start
