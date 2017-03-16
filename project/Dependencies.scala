@@ -32,8 +32,8 @@ object Dependencies {
   )
 
   def flinkDependencies(flinkVersion: String): Seq[ModuleID] = Seq(
-    "org.apache.flink" %% "flink-scala" % flinkVersion,
-    "org.apache.flink" %% "flink-streaming-scala" % flinkVersion,
+    "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
+    "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
     "org.apache.flink" %% "flink-connector-kafka-0.10" % flinkVersion
   )
 

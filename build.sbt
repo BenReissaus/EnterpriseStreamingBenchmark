@@ -64,20 +64,20 @@ lazy val util = (project in file("tools/util")).
     name := "Util"
   )
 
-lazy val flinkCluster = (project in file("implementation/flink/application")).
+lazy val flinkCluster = (project in file("implementation/flink/cluster")).
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= testDependencies,
     libraryDependencies ++= flinkDependencies(flinkVersion)
   ).
   settings(
-    name := "Flink",
+    name := "Flink-Cluster",
     mainClass in (Compile,run) := Some("org.hpi.esb.flink.Main"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
   ).
   dependsOn(commons)
 
-lazy val flinkLocal = (project in file("implementation/flink/local_application")).dependsOn(flinkCluster).
+lazy val flinkLocal = (project in file("implementation/flink/local")).dependsOn(flinkCluster).
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= flinkDependencies(flinkVersion).map {
