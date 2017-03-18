@@ -61,8 +61,10 @@ lazy val util = (project in file("tools/util")).
     libraryDependencies ++= testDependencies
   ).
   settings(
-    name := "Util"
-  )
+    name := "Util",
+    mainClass in (Compile,run) := Some("org.hpi.esb.util.Main")
+  ).
+  dependsOn(commons)
 
 lazy val flinkCluster = (project in file("implementation/flink/cluster")).
   settings(commonSettings: _*).
