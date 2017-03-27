@@ -3,83 +3,66 @@ package org.hpi.esb.datavalidator.validation
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.hpi.esb.datavalidator.config.Configurable
 import org.hpi.esb.datavalidator.data.{SimpleRecord, Statistics}
+import org.hpi.esb.datavalidator.metrics.CorrectnessMessages._
 import org.hpi.esb.datavalidator.util.Logging
 
+import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.util.{Failure, Success}
 
-class StatisticsValidation(inRecords: ListBuffer[ConsumerRecord[String, String]],
-                           resultRecords: ListBuffer[ConsumerRecord[String, String]], windowSize: Long)
-  extends ResultValidation(inRecords, resultRecords) with Configurable with Logging {
+class StatisticsValidation(serializedInRecords: ListBuffer[ConsumerRecord[String, String]],
+                           serializedOutRecords: ListBuffer[ConsumerRecord[String, String]], windowSize: Long)
+  extends Validation(serializedInRecords, serializedOutRecords) with Configurable with Logging {
 
-  val window = new StatisticsWindow(windowSize)
 
-  override def fulfillsRequirements(): Boolean = {
+  override def execute(): ValidationResult = {
 
-    if (recordsAreIncomplete()) {
-      return false
+    val simpleRecords = deserializeSimpleRecords(serializedInRecords)
+    val outStatistics = deserializeStatisticRecords(serializedOutRecords)
+
+    val goldStatistics = getGoldStatistics(simpleRecords)
+    if (outStatistics.size != goldStatistics.size) {
+      correctnessMetric.update(correct = false, details = UNEQUAL_LIST_SIZES_MESSAGE(goldStatistics.size, outStatistics.size))
+      return new ValidationResult(correctnessMetric, responseTimeMetric)
     }
 
-    window.setInitialWindowEnd(inRecords.head.timestamp())
-    val resultIter = resultRecords.toIterator
+    // compare calculated with gold statistics
+    val pairs = goldStatistics.zip(outStatistics)
+    pairs.foreach { case (goldStatistic, outStatistic) =>
 
-    inRecords.foreach(record => {
+      responseTimeMetric.updateValue(getResponseTime(goldStatistic, outStatistic))
 
-      if (!window.containsTimestamp(record.timestamp())) {
-        if (!isValidWindow(resultIter)) {
-          return false
-        }
+      if (goldStatistic != outStatistic) {
+        correctnessMetric.update(correct = false, details = UNEQUAL_VALUES_MESSAGE(goldStatistic.prettyPrint, outStatistic.prettyPrint))
+        return new ValidationResult(correctnessMetric, responseTimeMetric)
+      }
+    }
+
+    new ValidationResult(correctnessMetric, responseTimeMetric)
+  }
+
+  private def getGoldStatistics(records: ListBuffer[SimpleRecord]): ListBuffer[Statistics] = {
+
+    // this recursive function collects values per window and adds the calculated Statistics to 'statsList'
+    @tailrec
+    def getStatisticsWindow(leftRecords: ListBuffer[SimpleRecord], window: StatisticsWindow, statsList: ListBuffer[Statistics]): ListBuffer[Statistics] = {
+      if (leftRecords.isEmpty)
+        statsList
+      else {
+        val rest = window.takeRecords(leftRecords)
+        statsList.append(window.stats)
         window.update()
+        getStatisticsWindow(rest, window, statsList)
       }
-
-      // TODO: use custom kafka deserializer interface instead
-      val simpleRecord = SimpleRecord.deserialize(record.value()) match {
-        case Success(v) => v
-        case Failure(ex) => println(s"Invalid statistics query: The string '${record.value()}' is not a valid simple record serialization. ${ex.getMessage}."); return false
-      }
-      window.addValue(simpleRecord.value)
-    })
-
-    // evaluate last window
-    if (!isValidWindow(resultIter)) {
-      return false
     }
 
-    if (resultIter.nonEmpty) {
-      logger.info(s"Invalid statistics query: Too many statistics were calculated.")
-      return false
-    }
-
-    logger.info(s"Valid statistics query results.")
-    true
+    getStatisticsWindow(records, getInitialWindow(records), new ListBuffer[Statistics]())
   }
 
-  private def isValidWindow(resultIter: Iterator[ConsumerRecord[String, String]]): Boolean = {
-
-    if (!resultIter.hasNext) {
-      logger.info(s"Invalid statistics query: Too few statistics were calculated.")
-      return false
-    }
-    val serializedStats = resultIter.next().value()
-
-    val streamStats = Statistics.deserialize(serializedStats) match {
-      case Success(stats) => stats
-      case Failure(ex) => println(s"Invalid statistics query: The string '$serializedStats' is not a valid statistics object serialization. ${ex.getMessage}."); return false
-    }
-    if (!areCorrectStatisticResults(streamStats, window.stats)) {
-      return false
-    }
-
-    true
-  }
-
-  private def areCorrectStatisticResults(streamStats: Statistics, goldStats: Statistics): Boolean = {
-    if (window.stats != streamStats) {
-      logger.info(s"Invalid statistics query: Incorrect Results. WindowEnd: ${window.windowEnd} GoldStats: ${window.stats.prettyPrint} StreamStats: ${streamStats.prettyPrint}")
-      false
-    }
-    else {
-      true
+  private def getInitialWindow(records: ListBuffer[SimpleRecord]): StatisticsWindow = {
+    if (records.isEmpty) {
+      new StatisticsWindow(Long.MaxValue, windowSize)
+    } else {
+      new StatisticsWindow(records.head.timestamp, windowSize)
     }
   }
 }

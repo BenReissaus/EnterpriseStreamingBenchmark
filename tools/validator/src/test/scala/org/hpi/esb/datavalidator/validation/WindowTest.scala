@@ -4,28 +4,28 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class WindowTest extends FunSuite with BeforeAndAfter {
 
-  val window = new Window(windowSize = 1000)
+  val windowSize = 1000
 
   test("testSetInitialWindowEnd") {
 
     var timestamps = List(0, 1, 100, 999)
 
     timestamps.foreach(t => {
-      window.setInitialWindowEnd(firstElementTimestamp = t)
+      val window = new Window(firstTimestamp = t, windowSize)
       assert(window.windowEnd == 1000)
     })
 
     timestamps = List(1000, 1001)
 
     timestamps.foreach(t => {
-      window.setInitialWindowEnd(firstElementTimestamp = t)
+      val window = new Window(firstTimestamp = t, windowSize)
       assert(window.windowEnd == 2000)
     })
   }
 
   test("testContainsTimestamp") {
 
-    window.setInitialWindowEnd(firstElementTimestamp = 1)
+    val window = new Window(firstTimestamp = 1, windowSize)
 
     val containedValues = List(0,1,100,999)
     assert(containedValues.forall(window.containsTimestamp(_)))
@@ -36,7 +36,7 @@ class WindowTest extends FunSuite with BeforeAndAfter {
 
   test("testUpdateWindowEnd") {
 
-    window.setInitialWindowEnd(firstElementTimestamp = 1)
+    val window = new Window(firstTimestamp = 1, windowSize)
     window.update()
 
     assert(window.windowEnd == 2000)

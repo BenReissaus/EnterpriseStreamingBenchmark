@@ -45,7 +45,8 @@ lazy val validator = (project in file("tools/validator")).
     libraryDependencies ++= kafkaClients,
     libraryDependencies ++= loggingDependencies,
     libraryDependencies ++= configHandlingDependency,
-    libraryDependencies ++= testDependencies
+    libraryDependencies ++= testDependencies,
+    libraryDependencies ++= metrics
   ).
   settings(
     name := "Validator",

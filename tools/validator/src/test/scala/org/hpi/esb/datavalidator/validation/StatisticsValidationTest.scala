@@ -1,26 +1,24 @@
 package org.hpi.esb.datavalidator.validation
 
+import org.hpi.esb.datavalidator.util.Logging
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
-class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with BeforeAndAfter {
+class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
 
   val inTopic = "IN"
   val statsTopic = "STATS"
   val windowSize = 1000
 
   // (timestamp, "value")
-  val inValues:List[(Long, String)] = List[(Long, String)](
+  val inValues: List[(Long, String)] = List[(Long, String)](
+
     // first window
-    (1, "1"),
-    (500, "2"),
-
+    (1, "1"), (500, "2"),
     // second window
-    (1000, "10"),
-    (1001, "20"),
-    (1050, "30")
-  )
+    (1000, "10"), (1001, "20"), (1050, "30"))
 
-  test("testExecute - Successful") {
+  test("testExecute - correctness fulfilled") {
 
     val inRecords = createConsumerRecordList(inTopic, inValues)
 
@@ -32,10 +30,11 @@ class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with 
     val statsRecords = createConsumerRecordList(statsTopic, statsValues)
 
     val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    assert(statsValidation.fulfillsRequirements())
+    val validationResult = statsValidation.execute()
+    assert(validationResult.correctness.fulFillsConstraint)
   }
 
-  test("testExecute - Incorrect Results") {
+  test("testExecute - incorrect statistics results") {
 
     val inRecords = createConsumerRecordList(inTopic, inValues)
 
@@ -46,10 +45,11 @@ class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with 
     val statsRecords = createConsumerRecordList(statsTopic, wrongStatsValues)
 
     val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    assert(!statsValidation.fulfillsRequirements())
+    val validationResult = statsValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
   }
 
-  test("testExecute - Too few statistics") {
+  test("testExecute - too few statistics results") {
 
     val inRecords = createConsumerRecordList(inTopic, inValues)
 
@@ -60,10 +60,11 @@ class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with 
     val statsRecords = createConsumerRecordList(statsTopic, statsValues)
 
     val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    assert(!statsValidation.fulfillsRequirements())
+    val validationResult = statsValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
   }
 
-  test("testExecute - Too many statistics") {
+  test("testExecute - too many statistics results") {
 
     val inRecords = createConsumerRecordList(inTopic, inValues)
 
@@ -75,6 +76,69 @@ class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with 
     val statsRecords = createConsumerRecordList(statsTopic, statsValues)
 
     val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    assert(!statsValidation.fulfillsRequirements())
+    val validationResult = statsValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
+  }
+
+  test("testExecute - empty 'IN' records list") {
+
+    val inRecords = createConsumerRecordList(inTopic, List())
+
+    val statsValues = List[(Long, String)](
+      (2000, "1,2,3,2,1.5")
+    )
+    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+
+    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
+    val validationResult = statsValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
+  }
+
+  test("testExecute - unserializable sensor values") {
+    val inValues: List[(Long, String)] = List[(Long, String)]((1, "notserializable"), (500, "notserializable"))
+    val inRecords = createConsumerRecordList(inTopic, inValues)
+
+    val statsValues = List[(Long, String)]((2000, "1,2,3,4,5"))
+    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+
+    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
+    val validationResult = statsValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
+  }
+
+  test("testExecute - unserializable statistics values") {
+
+    val inRecords = createConsumerRecordList(inTopic, inValues)
+
+    val statsValues = List[(Long, String)](
+      (2000, "notserializable"),
+      (3000, "notserializable"),
+      (4000, "notserializable")
+    )
+    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+
+    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
+    val validationResult = statsValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
+  }
+
+  test("testExecute - correct response time calculation") {
+    val inValues: List[(Long, String)] = List[(Long, String)](
+      (1, "1"), (500, "2"),
+      (1000, "10"), (1001, "20"), (1050, "30"))
+
+    val statsValues: List[(Long, String)] = List[(Long, String)](
+      (2000, "1,2,3,2,1.5"),
+      (3000, "10,30,60,3,20"))
+
+    val expectedResponseTimes = Array(1500, 1950)
+
+    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+
+    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
+    val validationResult = statsValidation.execute()
+    val responseTimeMetric = validationResult.responseTime
+    assert(responseTimeMetric.getAllValues.sameElements(expectedResponseTimes))
   }
 }

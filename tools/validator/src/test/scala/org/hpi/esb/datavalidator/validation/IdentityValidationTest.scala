@@ -24,7 +24,8 @@ class IdentityValidationTest extends FunSuite with ValidationTestHelpers with Be
     val outRecords = createConsumerRecordList(outTopic, outValues)
 
     val identityValidation = new IdentityValidation(inRecords, outRecords)
-    assert(identityValidation.fulfillsRequirements())
+    val validationResult = identityValidation.execute()
+    assert(validationResult.correctness.fulFillsConstraint)
   }
 
   test("testExecute - incorrect results") {
@@ -41,7 +42,8 @@ class IdentityValidationTest extends FunSuite with ValidationTestHelpers with Be
     val outRecords = createConsumerRecordList(outTopic, wrongOutValues)
 
     val identityValidation = new IdentityValidation(inRecords, outRecords)
-    assert(!identityValidation.fulfillsRequirements())
+    val validationResult = identityValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
   }
 
   test("testExecute - too few results") {
@@ -55,7 +57,8 @@ class IdentityValidationTest extends FunSuite with ValidationTestHelpers with Be
     val outRecords = createConsumerRecordList(outTopic, outValues)
 
     val identityValidation = new IdentityValidation(inRecords, outRecords)
-    assert(!identityValidation.fulfillsRequirements())
+    val validationResult = identityValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
   }
 
   test("testExecute - too many results") {
@@ -74,6 +77,25 @@ class IdentityValidationTest extends FunSuite with ValidationTestHelpers with Be
     val outRecords = createConsumerRecordList(outTopic, outValues)
 
     val identityValidation = new IdentityValidation(inRecords, outRecords)
-    assert(!identityValidation.fulfillsRequirements())
+    val validationResult = identityValidation.execute()
+    assert(!validationResult.correctness.fulFillsConstraint)
+  }
+
+  test("testExecute - correct response time calculation") {
+    val inValues: List[(Long, String)] = List[(Long, String)](
+      (1, "1"), (500, "2"), (1000, "10"), (1001, "20"), (1050, "30"))
+
+    val outValues: List[(Long, String)] = List[(Long, String)](
+      (11, "1"), (510, "2"), (1010, "10"), (1011, "20"), (1060, "30"))
+
+    val expectedResponseTimes = Array(10, 10, 10, 10, 10)
+
+    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val statsRecords = createConsumerRecordList(outTopic, outValues)
+
+    val identityValidation = new IdentityValidation(inRecords, statsRecords)
+    val validationResult = identityValidation.execute()
+    val responseTimeMetric = validationResult.responseTime
+    assert(responseTimeMetric.getAllValues.sameElements(expectedResponseTimes))
   }
 }

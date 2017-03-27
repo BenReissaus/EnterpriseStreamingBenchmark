@@ -1,17 +1,25 @@
 package org.hpi.esb.datavalidator.validation
 
-import org.hpi.esb.datavalidator.data.Statistics
+import org.hpi.esb.datavalidator.data.{SimpleRecord, Statistics}
 
-class StatisticsWindow(windowSize: Long) extends Window(windowSize) {
+import scala.collection.mutable.ListBuffer
 
-  var stats = new Statistics()
+class StatisticsWindow(firstTimestamp: Long, windowSize: Long) extends Window(firstTimestamp, windowSize) {
+
+  var stats = new Statistics()()
 
   override def update(): Unit = {
     super.update()
-    stats = new Statistics()
+    stats = new Statistics()()
   }
 
-  def addValue(value: Long): Unit = {
-    stats = stats.getUpdatedWithValue(value)
+  def addValue(value: Long, timestamp: Long): Unit = {
+    stats = stats.getUpdatedWithValue(timestamp, value)
+  }
+
+  def takeRecords(records: ListBuffer[SimpleRecord]): ListBuffer[SimpleRecord] = {
+    val (windowValues, rest) = records.span(r => containsTimestamp(r.timestamp))
+    windowValues.foreach(r => addValue(r.value, r.timestamp))
+    rest
   }
 }

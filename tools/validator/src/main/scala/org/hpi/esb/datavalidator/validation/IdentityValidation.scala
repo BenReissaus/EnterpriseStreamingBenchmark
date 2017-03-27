@@ -2,32 +2,40 @@ package org.hpi.esb.datavalidator.validation
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.hpi.esb.datavalidator.config.Configurable
+import org.hpi.esb.datavalidator.metrics.CorrectnessMessages._
 import org.hpi.esb.datavalidator.util.Logging
 
 import scala.collection.mutable.ListBuffer
 
 
-class IdentityValidation(inRecords: ListBuffer[ConsumerRecord[String, String]],
-                         resultRecords: ListBuffer[ConsumerRecord[String, String]])
-  extends ResultValidation(inRecords, resultRecords) with Configurable with Logging {
+class IdentityValidation(serializedInRecords: ListBuffer[ConsumerRecord[String, String]],
+                         serializedOutRecords: ListBuffer[ConsumerRecord[String, String]])
+  extends Validation(serializedInRecords, serializedOutRecords) with Configurable with Logging {
 
-  override def fulfillsRequirements(): Boolean = {
+  override def execute(): ValidationResult = {
 
-    if (inRecords.size != resultRecords.size) {
-      logger.info(s"Invalid identity query result. Expected 'OUT' size: ${inRecords.size} Actual: ${resultRecords.size}")
-      false
+    val inRecords = deserializeSimpleRecords(serializedInRecords)
+    val outRecords = deserializeSimpleRecords(serializedOutRecords)
+
+    if (inRecords.size != outRecords.size) {
+      correctnessMetric.update(correct = false, details = UNEQUAL_LIST_SIZES_MESSAGE(outRecords.size, inRecords.size))
+      return new ValidationResult(correctnessMetric, responseTimeMetric)
     }
-    else {
 
-      inRecords.zip(resultRecords)
-        .foreach { case (r1, r2) =>
-          if (r1.value() != r2.value()) {
-            logger.info(s"Invalid identity query result: Expected value: ${r1.value()} but found value: ${r2.value()}.")
-            return false
-          }
-        }
-      logger.info(s"Valid identity query results. Both topics have size ${inRecords.size}.")
-      true
+    // compare 'IN' records with 'OUT" records
+    val pairs = inRecords.zip(outRecords)
+    pairs.foreach { case (inRecord, outRecord) =>
+
+      responseTimeMetric.updateValue(getResponseTime(inRecord, outRecord))
+
+      if (inRecord.value != outRecord.value) {
+        correctnessMetric.update(correct = false, details = UNEQUAL_VALUES_MESSAGE(inRecord.value.toString, outRecord.value.toString))
+        return new ValidationResult(correctnessMetric, responseTimeMetric)
+      }
     }
+
+    correctnessMetric.update(correct = true, details = s"Both topics have size ${serializedInRecords.size}.")
+    new ValidationResult(correctnessMetric, responseTimeMetric)
   }
+
 }

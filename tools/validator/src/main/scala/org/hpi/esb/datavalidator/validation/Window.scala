@@ -1,8 +1,8 @@
 package org.hpi.esb.datavalidator.validation
 
-class Window(val windowSize: Long) {
+class Window(firstTimestamp: Long, val windowSize: Long) {
 
-  var windowEnd: Long = 0
+  var windowEnd: Long = (firstTimestamp - (firstTimestamp % windowSize)) + windowSize
 
   def containsTimestamp(t: Long): Boolean = {
     t < windowEnd
@@ -10,10 +10,5 @@ class Window(val windowSize: Long) {
 
   def update(): Unit = {
     windowEnd += windowSize
-  }
-
-  def setInitialWindowEnd(firstElementTimestamp: Long): Unit = {
-    val windowStart = firstElementTimestamp - (firstElementTimestamp % windowSize)
-    windowEnd = windowStart + windowSize
   }
 }

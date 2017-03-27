@@ -3,9 +3,9 @@ package org.hpi.esb.datavalidator
 import org.hpi.esb.commons.config.Configs.QueryNames._
 import org.hpi.esb.commons.config.Configs.{QueryConfig, benchmarkConfig}
 import org.hpi.esb.datavalidator.config.Configurable
-import org.hpi.esb.datavalidator.consumer.Consumer
+import org.hpi.esb.datavalidator.consumer.{Consumer, Records}
 import org.hpi.esb.datavalidator.util.Logging
-import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation}
+import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation}
 
 class Validator() extends Configurable with Logging {
 
@@ -14,21 +14,22 @@ class Validator() extends Configurable with Logging {
     val consumer = new Consumer(benchmarkConfig.getAllTopics, config.consumer)
     val records = consumer.consume()
 
-    val validations = benchmarkConfig.streamConfigs.flatMap(streamConfig => {
+    val queryConfigs = benchmarkConfig.queryConfigs
 
-      val sourceResults = records.getTopicResults(streamConfig.sourceName)
-      streamConfig.queryConfigs.map {
+    val validationResults = getValidations(queryConfigs, records)
+      .map(_.execute())
 
-        case QueryConfig(IdentityQuery, sinkName) =>
-          val sinkResults = records.getTopicResults(sinkName)
-          new IdentityValidation(sourceResults, sinkResults)
+    validationResults.foreach(logger.info(_))
+  }
 
-        case QueryConfig(StatisticsQuery, sinkName) =>
-          val sinkResults = records.getTopicResults(sinkName)
-          new StatisticsValidation(sourceResults, sinkResults, config.windowSize)
-      }
-    })
+  def getValidations(queryConfigs: List[QueryConfig], records: Records): List[Validation] = {
+    queryConfigs.map {
 
-    validations.foreach(_.fulfillsRequirements())
+      case QueryConfig(sourceName, sinkName, IdentityQuery) =>
+        new IdentityValidation(records.getTopicResults(sourceName), records.getTopicResults(sinkName))
+
+      case QueryConfig(sourceName, sinkName, StatisticsQuery) =>
+        new StatisticsValidation(records.getTopicResults(sourceName), records.getTopicResults(sinkName), config.windowSize)
+    }
   }
 }

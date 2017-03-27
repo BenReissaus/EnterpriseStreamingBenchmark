@@ -8,6 +8,7 @@ import org.hpi.esb.datavalidator.util.Logging
 
 class Consumer(topics: List[String], config: KafkaConsumerConfig) extends Logging {
 
+  // TODO: this number could get pretty big. should probably be more like #cores - 1
   private val numberOfThreads = topics.length
   private val executor = Executors.newFixedThreadPool(numberOfThreads)
 

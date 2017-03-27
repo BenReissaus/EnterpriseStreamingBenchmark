@@ -5,18 +5,17 @@ import org.scalatest.FunSuite
 
 class StatisticsWindowTest extends FunSuite {
 
-  val statisticsWindow = new StatisticsWindow(windowSize = 1000)
-  val initializedStats = new Statistics()
+  val statisticsWindow = new StatisticsWindow(firstTimestamp = 10, windowSize = 1000)
+  val initializedStats = new Statistics()()
 
   test("testUpdate") {
 
     assert(statisticsWindow.stats == initializedStats)
 
-    statisticsWindow.addValue(100)
+    statisticsWindow.addValue(value = 100, timestamp = 100000)
     assert(statisticsWindow.stats != initializedStats)
 
     statisticsWindow.update()
     assert(statisticsWindow.stats == initializedStats)
   }
-
 }

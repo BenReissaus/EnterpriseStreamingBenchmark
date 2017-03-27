@@ -31,10 +31,13 @@ object Dependencies {
     "com.github.melrief" %% "pureconfig" % "0.5.0"
   )
 
+  val metrics = Seq(
+    "io.dropwizard.metrics" % "metrics-core" % "3.1.0"
+  )
+
   def flinkDependencies(flinkVersion: String): Seq[ModuleID] = Seq(
     "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
     "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
     "org.apache.flink" %% "flink-connector-kafka-0.10" % flinkVersion
   )
-
 }

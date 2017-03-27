@@ -21,30 +21,28 @@ object Configs {
     benchmarkArguments.getBenchmarkConfig
   }
 
-  case class BenchmarkConfig(streamConfigs: List[StreamConfig]) {
+  case class BenchmarkConfig(queryConfigs: List[QueryConfig]) {
     def getAllTopics: List[String] = {
-      streamConfigs.flatMap(s => List(s.sourceName) ++ s.queryConfigs.map(queryConfig => queryConfig.sinkName))
+      queryConfigs.flatMap(q => List(q.sourceName, q.sinkName)).distinct
     }
 
     def getSourceTopics: List[String] = {
-      streamConfigs.map(_.sourceName)
+      queryConfigs.map(_.sourceName).distinct
     }
   }
-  case class StreamConfig(sourceName: String, queryConfigs: List[QueryConfig])
-  case class QueryConfig(queryName: String, sinkName: String)
 
+  case class QueryConfig(sourceName: String, sinkName: String, queryName: String)
 
   case class BenchmarkArguments(topicPrefix: String, topicPostfix: String, streams: List[String], queries: List[String]) {
 
     def getBenchmarkConfig: BenchmarkConfig = {
 
-      val sensorConfigs = streams.map(sensor => {
-        val queryConfigs = queries.map(query => {
-          QueryConfig(query, getSinkName(sensor, query))
-        })
-        StreamConfig(getSourceName(sensor), queryConfigs)
-      })
-      BenchmarkConfig(sensorConfigs)
+      val queryConfigs = for {
+        s <- streams
+        q <- queries
+      } yield QueryConfig(getSourceName(s), getSinkName(s, q), q)
+
+      BenchmarkConfig(queryConfigs)
     }
 
     def getSourceName(stream: String): String = {
