@@ -1,101 +1,138 @@
 package org.hpi.esb.datavalidator.validation
 
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.{RunnableGraph, Source}
+import org.hpi.esb.datavalidator.data.SimpleRecord
+import org.hpi.esb.datavalidator.kafka.TopicHandler
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{AsyncFunSuite, BeforeAndAfter, FunSuite}
 
-class IdentityValidationTest extends FunSuite with ValidationTestHelpers with BeforeAndAfter {
+import scala.concurrent.ExecutionContext.Implicits.global
+
+trait IdentityValidationTest {
 
   val inTopic = "IN"
   val outTopic = "OUT"
 
-  // (timestamp, "value")
-  val inValues: List[(Long, String)] = List[(Long, String)](
-    (1, "1"),
-    (500, "2"),
-    (1000, "10"),
-    (1001, "20"),
-    (1050, "30")
-  )
+  val valueTimestamps: List[(Long, String)] = List[(Long, String)](
+    (1, "1"), (500, "2"),  // first window
+    (1000, "3"),(1001, "4"),(1050, "5"))  // second window
 
-  test("testExecute - successful") {
+  val inCorrectValueTimestamps: List[(Long, String)] = List[(Long, String)](
+    (999, "999"), (999, "999"),(999, "999"),(999, "999"),(999, "999"))
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
 
-    val outValues = inValues
-    val outRecords = createConsumerRecordList(outTopic, outValues)
+  implicit val system: ActorSystem = ActorSystem("ESBValidator")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
+}
 
-    val identityValidation = new IdentityValidation(inRecords, outRecords)
-    val validationResult = identityValidation.execute()
-    assert(validationResult.correctness.fulFillsConstraint)
+class IdentityValidationTestAsync extends AsyncFunSuite with IdentityValidationTest with ValidationTestHelpers with BeforeAndAfter with MockitoSugar {
+
+  test("testCreateSink - correctness and response time fulfilled ") {
+    val sink = new IdentityValidation(mock[TopicHandler], mock[TopicHandler], materializer).createSink()
+
+    val inSimpleRecords = valueTimestamps.map { case (timestamp, value) => Some(SimpleRecord.deserialize(value, timestamp)) }
+    val outSimpleRecords = inSimpleRecords
+    val testSource = Source(inSimpleRecords.zip(outSimpleRecords))
+
+    val graph = combineSourceWithSink[SimpleRecord](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
+
+    validationResult.map({ result => assert(result.fulfillsConstraints()) })
   }
 
-  test("testExecute - incorrect results") {
+  test("testCreateSink - incorrect results") {
+    val sink = new IdentityValidation(mock[TopicHandler], mock[TopicHandler], materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inSimpleRecords = createSimpleRecordsList(valueTimestamps)
+    val outSimpleRecords = createSimpleRecordsList(inCorrectValueTimestamps)
+    val testSource = Source(inSimpleRecords.zip(outSimpleRecords))
 
-    val wrongOutValues: List[(Long, String)] = List[(Long, String)](
-      (1, "999"),
-      (500, "999"),
-      (1000, "999"),
-      (1001, "999"),
-      (1050, "999")
-    )
-    val outRecords = createConsumerRecordList(outTopic, wrongOutValues)
+    val graph = combineSourceWithSink[SimpleRecord](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val identityValidation = new IdentityValidation(inRecords, outRecords)
-    val validationResult = identityValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.map(result => assert(!result.fulfillsConstraints()))
   }
 
-  test("testExecute - too few results") {
+  test("testCreateSink - too few results") {
+    val sink = new IdentityValidation(mock[TopicHandler], mock[TopicHandler], materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inSimpleRecords = createSimpleRecordsList(valueTimestamps)
+    val outSimpleRecords = createSimpleRecordsList(valueTimestamps.dropRight(1))
+    val testSource = Source(inSimpleRecords.zipAll(outSimpleRecords, None, None))
 
-    val outValues: List[(Long, String)] = List[(Long, String)](
-      (1, "1"),
-      (500, "2")
-    )
-    val outRecords = createConsumerRecordList(outTopic, outValues)
+    val graph = combineSourceWithSink[SimpleRecord](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val identityValidation = new IdentityValidation(inRecords, outRecords)
-    val validationResult = identityValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.map({ result =>
+      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too few"))
+    })
   }
 
-  test("testExecute - too many results") {
+  test("testCreateSink - too many results") {
+    val sink = new IdentityValidation(mock[TopicHandler], mock[TopicHandler], materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inSimpleRecords = createSimpleRecordsList(valueTimestamps.dropRight(1))
+    val outSimpleRecords = createSimpleRecordsList(valueTimestamps)
+    val testSource = Source(inSimpleRecords.zipAll(outSimpleRecords, None, None))
 
-    val outValues: List[(Long, String)] = List[(Long, String)](
-      (1, "1"),
-      (500, "2"),
-      (1000, "10"),
-      (1001, "20"),
-      (1050, "30"),
-      (1070, "999"),
-      (1090, "999")
-    )
-    val outRecords = createConsumerRecordList(outTopic, outValues)
+    val graph = combineSourceWithSink[SimpleRecord](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val identityValidation = new IdentityValidation(inRecords, outRecords)
-    val validationResult = identityValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.map({ result =>
+      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too many"))
+    })
   }
 
-  test("testExecute - correct response time calculation") {
-    val inValues: List[(Long, String)] = List[(Long, String)](
-      (1, "1"), (500, "2"), (1000, "10"), (1001, "20"), (1050, "30"))
+  test("testCreateSink - correct response time calculation") {
 
-    val outValues: List[(Long, String)] = List[(Long, String)](
-      (11, "1"), (510, "2"), (1010, "10"), (1011, "20"), (1060, "30"))
+    val sink = new IdentityValidation(mock[TopicHandler], mock[TopicHandler], materializer).createSink()
 
-    val expectedResponseTimes = Array(10, 10, 10, 10, 10)
+    val responseTime = 100
+    val inValues = createSimpleRecordsList(valueTimestamps)
+    val outValues = createSimpleRecordsList(valueTimestamps.map { case (timestamp, value) => (timestamp + responseTime, value) })
+    val testSource = Source(inValues.zip(outValues))
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
-    val statsRecords = createConsumerRecordList(outTopic, outValues)
+    val graph = combineSourceWithSink[SimpleRecord](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val identityValidation = new IdentityValidation(inRecords, statsRecords)
-    val validationResult = identityValidation.execute()
-    val responseTimeMetric = validationResult.responseTime
-    assert(responseTimeMetric.getAllValues.sameElements(expectedResponseTimes))
+    val expectedResponseTimes = Array.fill(valueTimestamps.length)(responseTime)
+    validationResult.map(result => assert(result.fulfillsConstraints() && result.responseTime.getAllValues.sameElements(expectedResponseTimes)))
   }
 }
+
+class IdentityValidationTestSync extends FunSuite with IdentityValidationTest with ValidationTestHelpers with BeforeAndAfter with MockitoSugar {
+
+  test("testCreateSource - successful") {
+
+    val inTopicHandler = createTopicHandler(inTopic, valueTimestamps)
+    val outTopicHandler = createTopicHandler(outTopic, valueTimestamps)
+
+    val source = new IdentityValidation(inTopicHandler, outTopicHandler, materializer).createSource()
+
+    val graph = addTestSink[SimpleRecord](source, system)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
+
+    validationResult.request(valueTimestamps.length)
+
+    valueTimestamps.foreach { case (_,value) => validationResult.expectNext((Some(SimpleRecord(value.toLong)()), Some(SimpleRecord(value.toLong)())))}
+    validationResult.expectComplete()
+  }
+
+  test("testCreateSource - unserializable sensor values") {
+    val unserializableValueTimestamps: List[(Long, String)] = List[(Long, String)]((1, "notserializable"), (500, "notserializable"))
+    val inTopicHandler = createTopicHandler(inTopic, unserializableValueTimestamps)
+    val outTopicHandler = createTopicHandler(outTopic, valueTimestamps)
+
+    val source = new IdentityValidation(inTopicHandler, outTopicHandler, materializer)
+      .createSource()
+
+    val graph = addTestSink[SimpleRecord](source, system)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
+
+    validationResult.request(unserializableValueTimestamps.length)
+    validationResult.expectError()
+  }
+}
+

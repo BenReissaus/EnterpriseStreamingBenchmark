@@ -9,12 +9,12 @@ object ResponseTimeMetric {
 
 class ResponseTimeMetric extends ConstrainedMetric {
 
-  override def fulFillsConstraint: Boolean = {
+  override def fulfillsConstraint: Boolean = {
      getPercentileValue < ResponseTimeMetric.referenceValue
   }
 
   val histogram = new Histogram(new UniformReservoir())
-  lazy val snapshot: Snapshot = histogram.getSnapshot
+  private lazy val snapshot: Snapshot = histogram.getSnapshot
 
 
   override def getSuccessMessage: String = {

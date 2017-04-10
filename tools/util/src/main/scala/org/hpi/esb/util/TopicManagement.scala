@@ -1,6 +1,7 @@
 package org.hpi.esb.util
 
 import kafka.admin.AdminUtils
+import kafka.tools.GetOffsetShell
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.{ZkClient, ZkConnection}
 import org.hpi.esb.commons.config.Configs

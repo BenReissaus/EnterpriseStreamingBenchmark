@@ -53,7 +53,7 @@ class StatisticsTest extends FunSuite {
   }
 
   test("testCreate - Successful") {
-    val stats = Statistics.deserialize(stats = "2,4,6,2,3.0", timestamp = 4).get
+    val stats = Statistics.deserialize(stats = "2,4,6,2,3.0", timestamp = 4)
 
     assert(stats.min === 2)
     assert(stats.max === 4)
@@ -64,7 +64,7 @@ class StatisticsTest extends FunSuite {
 
   test("testCreate - Unsuccessful") {
     assertThrows[IllegalArgumentException] {
-      Statistics.deserialize(stats = "incorrect string", timestamp = 4).get
+      Statistics.deserialize(stats = "incorrect string", timestamp = 4)
     }
   }
 }

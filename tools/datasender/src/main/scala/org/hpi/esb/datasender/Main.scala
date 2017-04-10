@@ -22,6 +22,8 @@ object Main extends Logging {
     val kafkaProducer = getKafkaProducer(config.kafkaProducerConfig)
 
     val topics: List[String] = Configs.benchmarkConfig.getSourceTopics
+    val seperator = " "
+    logger.info(s"Sending records to following topics: ${topics.mkString(seperator)}")
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get
     val sendingInterval = config.dataSenderConfig.sendingInterval.get
 

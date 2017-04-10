@@ -42,17 +42,17 @@ lazy val datasender = (project in file("tools/datasender")).
 lazy val validator = (project in file("tools/validator")).
   settings(commonSettings: _*).
   settings(
-    libraryDependencies ++= kafkaClients,
     libraryDependencies ++= loggingDependencies,
     libraryDependencies ++= configHandlingDependency,
     libraryDependencies ++= testDependencies,
-    libraryDependencies ++= metrics
+    libraryDependencies ++= metrics,
+    libraryDependencies ++= akka
   ).
   settings(
     name := "Validator",
     mainClass in Compile := Some("org.hpi.esb.datavalidator.Main")
   ).
-  dependsOn(commons)
+  dependsOn(commons, util)
 
 lazy val util = (project in file("tools/util")).
   settings(commonSettings: _*).

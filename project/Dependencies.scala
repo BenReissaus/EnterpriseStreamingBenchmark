@@ -35,6 +35,13 @@ object Dependencies {
     "io.dropwizard.metrics" % "metrics-core" % "3.1.0"
   )
 
+  val akka = Seq(
+    "com.typesafe.akka" %% "akka-actor" % "2.4.17",
+    "com.typesafe.akka" %% "akka-stream" % "2.4.17",
+    "com.typesafe.akka" %% "akka-stream-kafka" % "0.13",
+    "com.typesafe.akka" % "akka-stream-testkit_2.11" % "2.4.17"
+  )
+
   def flinkDependencies(flinkVersion: String): Seq[ModuleID] = Seq(
     "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
     "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",

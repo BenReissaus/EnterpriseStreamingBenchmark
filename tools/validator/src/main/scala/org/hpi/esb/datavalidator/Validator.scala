@@ -3,33 +3,46 @@ package org.hpi.esb.datavalidator
 import org.hpi.esb.commons.config.Configs.QueryNames._
 import org.hpi.esb.commons.config.Configs.{QueryConfig, benchmarkConfig}
 import org.hpi.esb.datavalidator.config.Configurable
-import org.hpi.esb.datavalidator.consumer.{Consumer, Records}
+import org.hpi.esb.datavalidator.data.Record
+import org.hpi.esb.datavalidator.kafka.TopicHandler
 import org.hpi.esb.datavalidator.util.Logging
-import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation}
+import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation, ValidationResult}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 class Validator() extends Configurable with Logging {
 
   def execute(): Unit = {
 
-    val consumer = new Consumer(benchmarkConfig.getAllTopics, config.consumer)
-    val records = consumer.consume()
-
+    val topics = benchmarkConfig.getAllTopics
     val queryConfigs = benchmarkConfig.queryConfigs
 
-    val validationResults = getValidations(queryConfigs, records)
+    val topicHandlersByName = topics.map(topic => topic -> TopicHandler.create(topic, AkkaManager.system)).toMap
+
+    val validationResults = getValidations(queryConfigs, topicHandlersByName)
       .map(_.execute())
 
-    validationResults.foreach(logger.info(_))
+    Future.sequence(validationResults).onComplete({
+      case Success(results) => results.foreach(printResult); AkkaManager.terminate()
+      case Failure(e) => logger.error(e.getMessage); AkkaManager.terminate()
+    })
   }
 
-  def getValidations(queryConfigs: List[QueryConfig], records: Records): List[Validation] = {
+
+  def printResult(result: ValidationResult): Unit = {
+    logger.info(result)
+  }
+
+  def getValidations(queryConfigs: List[QueryConfig], topicHandlersByName: Map[String, TopicHandler]): List[Validation[_ <: Record]] = {
     queryConfigs.map {
 
       case QueryConfig(sourceName, sinkName, IdentityQuery) =>
-        new IdentityValidation(records.getTopicResults(sourceName), records.getTopicResults(sinkName))
+        new IdentityValidation(topicHandlersByName(sourceName), topicHandlersByName(sinkName), AkkaManager.materializer)
 
       case QueryConfig(sourceName, sinkName, StatisticsQuery) =>
-        new StatisticsValidation(records.getTopicResults(sourceName), records.getTopicResults(sinkName), config.windowSize)
+        new StatisticsValidation(topicHandlersByName(sourceName), topicHandlersByName(sinkName), config.windowSize, AkkaManager.materializer)
     }
   }
 }

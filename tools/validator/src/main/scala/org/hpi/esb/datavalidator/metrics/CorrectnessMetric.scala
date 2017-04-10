@@ -2,23 +2,22 @@ package org.hpi.esb.datavalidator.metrics
 
 object CorrectnessMessages {
 
-  def UNEQUAL_LIST_SIZES_MESSAGE(expectedSize: Long, actualSize: Long): String =
-    s"Expected result size: $expectedSize Actual: $actualSize"
-
-  def UNEQUAL_VALUES_MESSAGE(expectedValue: String, actualValue: String): String =
+  def UNEQUAL_VALUES(expectedValue: String, actualValue: String): String =
     s"Expected value: $expectedValue Actual: $actualValue."
 
+  def TOO_FEW_VALUES_CREATED(valueType: String): String = s"Too few $valueType were created."
+  def TOO_MANY_VALUES_CREATED(valueType: String): String = s"Too many $valueType were created."
 }
 
-class CorrectnessMetric(var correct: Boolean = true, var details: String = "") extends ConstrainedMetric {
-  override def getSuccessMessage: String = s"All values were correctly calculated. $details"
+class CorrectnessMetric(private var isCorrect: Boolean = true, private var details: String = "") extends ConstrainedMetric {
+  override def getSuccessMessage: String = s"All values were correctly calculated."
 
   override def getErrorMessage: String = s"Not all values were correctly calculated. The following incidents occurred: $details"
 
-  override def fulFillsConstraint: Boolean = correct
+  override def fulfillsConstraint: Boolean = isCorrect
 
-  def update(correct: Boolean, details: String): Unit = {
-    this.correct &= correct
-    this.details += s"\n$details"
+  def update(isCorrect: Boolean, details: String): Unit = {
+    this.details = s"\n$details"
+    this.isCorrect &= isCorrect
   }
 }

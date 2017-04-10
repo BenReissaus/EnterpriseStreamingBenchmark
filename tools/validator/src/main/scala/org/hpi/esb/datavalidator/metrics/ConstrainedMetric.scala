@@ -4,9 +4,9 @@ trait ConstrainedMetric extends Metric {
 
   def getSuccessMessage: String
   def getErrorMessage: String
-  def fulFillsConstraint: Boolean
+  def fulfillsConstraint: Boolean
 
   override def getResultMessage: String = {
-    if (fulFillsConstraint) getSuccessMessage else getErrorMessage
+    if (fulfillsConstraint) getSuccessMessage else getErrorMessage
   }
 }

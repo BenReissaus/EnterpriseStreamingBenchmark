@@ -1,144 +1,159 @@
 package org.hpi.esb.datavalidator.validation
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.{RunnableGraph, Source}
+import org.hpi.esb.datavalidator.data.Statistics
+import org.hpi.esb.datavalidator.kafka.TopicHandler
 import org.hpi.esb.datavalidator.util.Logging
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfter, FunSuite}
+import org.scalatest.{AsyncFunSuite, BeforeAndAfter, FunSuite}
 
-class StatisticsValidationTest extends FunSuite with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+import scala.concurrent.ExecutionContext.Implicits.global
+
+trait StatisticsValidationTest {
+  implicit val system: ActorSystem = ActorSystem("ESBValidator")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
 
   val inTopic = "IN"
   val statsTopic = "STATS"
   val windowSize = 1000
 
-  // (timestamp, "value")
-  val inValues: List[(Long, String)] = List[(Long, String)](
+  val valueTimestamps: List[(Long, String)] = List[(Long, String)](
+    (1, "1"), (500, "2"),  // first window
+    (1000, "3"),(1001, "4"),(1050, "5")  // second window
+  )
 
-    // first window
-    (1, "1"), (500, "2"),
-    // second window
-    (1000, "10"), (1001, "20"), (1050, "30"))
+  val correctResultStats = List[(Long, String)](
+    (2000, "1,2,3,2,1.5"),
+    (3000, "3,5,12,3,4")
+  )
 
-  test("testExecute - correctness fulfilled") {
+  val inCorrectResultStats = List[(Long, String)](
+    (999, "999,999,999,999,999"),
+    (3000, "999,999,999,999,999")
+  )
+}
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidationTest with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
 
-    // (timestamp, "min,max,sum,count,avg")
-    val statsValues = List[(Long, String)](
-      (2000, "1,2,3,2,1.5"),
-      (3000, "10,30,60,3,20")
-    )
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+  test("testCreateSink - correctness and response time fulfilled ") {
+    val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(validationResult.correctness.fulFillsConstraint)
+    val inStatistics = correctResultStats.map { case (timestamp, value) => Some(Statistics.deserialize(value, timestamp)) }
+    val outStatistics = inStatistics
+    val testSource = Source(inStatistics.zip(outStatistics))
+
+    val graph = combineSourceWithSink[Statistics](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
+
+    validationResult.map({ result => assert(result.fulfillsConstraints()) })
   }
 
-  test("testExecute - incorrect statistics results") {
+  test("testCreateSink - incorrect results") {
+    val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inStatistics = createStatisticsList(correctResultStats)
+    val outStatistics = createStatisticsList(inCorrectResultStats)
+    val testSource = Source(inStatistics.zip(outStatistics))
 
-    val wrongStatsValues = List[(Long, String)](
-      (2000, "999,999,999,999,999"),
-      (3000, "10,30,60,3,20")
-    )
-    val statsRecords = createConsumerRecordList(statsTopic, wrongStatsValues)
+    val graph = combineSourceWithSink[Statistics](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.map(result => assert(!result.fulfillsConstraints()))
   }
 
-  test("testExecute - too few statistics results") {
+  test("testCreateSink - too few statistics results") {
+    val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inStatistics = createStatisticsList(correctResultStats)
+    val outStatistics = createStatisticsList(correctResultStats.dropRight(1))
+    val testSource = Source(inStatistics.zipAll(outStatistics, None, None))
 
-    // (timestamp, "min,max,sum,count,avg")
-    val statsValues = List[(Long, String)](
-      (1000, "1,2,3,2,1.5")
-    )
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+    val graph = combineSourceWithSink[Statistics](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.map({ result =>
+      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too few"))
+    })
   }
 
-  test("testExecute - too many statistics results") {
+  test("testCreateSink - too many statistics results") {
+    val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inStatistics = createStatisticsList(correctResultStats.dropRight(1))
+    val outStatistics = createStatisticsList(correctResultStats)
+    val testSource = Source(inStatistics.zipAll(outStatistics, None, None))
 
-    val statsValues = List[(Long, String)](
-      (2000, "1,2,3,2,1.5"),
-      (3000, "10,30,60,3,20"),
-      (4000, "1234,1234,1234,1234,12345")
-    )
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+    val graph = combineSourceWithSink[Statistics](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.map({ result =>
+      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too many"))
+    })
   }
 
-  test("testExecute - empty 'IN' records list") {
+  test("testCreateSink - correct response time calculation") {
+    val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
 
-    val inRecords = createConsumerRecordList(inTopic, List())
+    val responseTime = 100
+    val inStatistics = createStatisticsList(correctResultStats)
+    val outStatistics = createStatisticsList(correctResultStats.map { case (timestamp, value) => (timestamp + responseTime, value) })
+    val testSource = Source(inStatistics.zip(outStatistics))
 
-    val statsValues = List[(Long, String)](
-      (2000, "1,2,3,2,1.5")
-    )
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+    val graph = combineSourceWithSink[Statistics](testSource, sink)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    val expectedResponseTimes = Array.fill(correctResultStats.length)(responseTime)
+    validationResult.map({ result =>
+      assert(result.fulfillsConstraints() && result.responseTime.getAllValues.sameElements(expectedResponseTimes))
+    })
+  }
+}
+
+class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTest with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+
+  test("testCreateSource - successful") {
+
+    val inTopicHandler = createTopicHandler(inTopic, valueTimestamps)
+    val outTopicHandler = createTopicHandler(statsTopic, correctResultStats)
+    val source = new StatisticsValidation(inTopicHandler, outTopicHandler, windowSize, materializer).createSource()
+
+    val graph = addTestSink[Statistics](source, system)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
+
+    validationResult.request(5)
+    correctResultStats.foreach {
+      case (timestamp, value) => val stat = Some(Statistics.deserialize(value, timestamp))
+        validationResult.expectNext((stat, stat))
+    }
+    validationResult.expectComplete()
   }
 
-  test("testExecute - unserializable sensor values") {
-    val inValues: List[(Long, String)] = List[(Long, String)]((1, "notserializable"), (500, "notserializable"))
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+  test("testCreateSource - unserializable sensor values") {
+    val unserializableValueTimestamps: List[(Long, String)] = List[(Long, String)]((1, "notserializable"), (500, "notserializable"))
+    val inTopicHandler = createTopicHandler(inTopic, unserializableValueTimestamps)
+    val outTopicHandler = createTopicHandler(statsTopic, correctResultStats)
+    val source = new StatisticsValidation(inTopicHandler, outTopicHandler, windowSize, materializer).createSource()
 
-    val statsValues = List[(Long, String)]((2000, "1,2,3,4,5"))
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+    val graph = addTestSink[Statistics](source, system)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
+    validationResult.request(5)
+    validationResult.expectError()
   }
 
-  test("testExecute - unserializable statistics values") {
+  test("testCreateSource - unserializable statistics values") {
 
-    val inRecords = createConsumerRecordList(inTopic, inValues)
+    val inTopicHandler = createTopicHandler(inTopic, valueTimestamps)
+    val unserializableStats: List[(Long, String)] = List[(Long, String)]((1, "notserializable"), (500, "notserializable"))
+    val outTopicHandler = createTopicHandler(statsTopic, unserializableStats)
+    val source = new StatisticsValidation(inTopicHandler, outTopicHandler, windowSize, materializer).createSource()
 
-    val statsValues = List[(Long, String)](
-      (2000, "notserializable"),
-      (3000, "notserializable"),
-      (4000, "notserializable")
-    )
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
+    val graph = addTestSink[Statistics](source, system)
+    val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    assert(!validationResult.correctness.fulFillsConstraint)
-  }
-
-  test("testExecute - correct response time calculation") {
-    val inValues: List[(Long, String)] = List[(Long, String)](
-      (1, "1"), (500, "2"),
-      (1000, "10"), (1001, "20"), (1050, "30"))
-
-    val statsValues: List[(Long, String)] = List[(Long, String)](
-      (2000, "1,2,3,2,1.5"),
-      (3000, "10,30,60,3,20"))
-
-    val expectedResponseTimes = Array(1500, 1950)
-
-    val inRecords = createConsumerRecordList(inTopic, inValues)
-    val statsRecords = createConsumerRecordList(statsTopic, statsValues)
-
-    val statsValidation = new StatisticsValidation(inRecords, statsRecords, windowSize)
-    val validationResult = statsValidation.execute()
-    val responseTimeMetric = validationResult.responseTime
-    assert(responseTimeMetric.getAllValues.sameElements(expectedResponseTimes))
+    validationResult.request(5)
+    validationResult.expectError()
   }
 }
