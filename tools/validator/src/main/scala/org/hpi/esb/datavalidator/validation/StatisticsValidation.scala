@@ -14,7 +14,10 @@ class StatisticsValidation(inTopicHandler: TopicHandler,
                            materializer: ActorMaterializer)
   extends Validation[Statistics](inTopicHandler, outTopicHandler, materializer) with Configurable with Logging {
 
-  val valueName = "Statistics"
+  override val valueName = "Statistics"
+  override val queryName = "Statistics Query"
+
+
   val collectByWindow = new AccumulateWhileUnchanged[SimpleRecord, Long](r => windowStart(r.timestamp))
   val calculateStatistics = Flow[Seq[SimpleRecord]].map(s =>
     s.foldLeft(new Statistics()())((stats, record) => stats.getUpdatedWithValue(record.timestamp, record.value)))

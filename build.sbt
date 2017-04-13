@@ -46,7 +46,8 @@ lazy val validator = (project in file("tools/validator")).
     libraryDependencies ++= configHandlingDependency,
     libraryDependencies ++= testDependencies,
     libraryDependencies ++= metrics,
-    libraryDependencies ++= akka
+    libraryDependencies ++= akka,
+    libraryDependencies ++= csv
   ).
   settings(
     name := "Validator",

@@ -38,3 +38,8 @@ modules.xml
 # Ansible files
 *.retry
 
+# validator results
+tools/validator/results/
+
+# configuration files
+**/*.conf

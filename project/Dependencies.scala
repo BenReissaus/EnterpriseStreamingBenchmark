@@ -40,6 +40,10 @@ object Dependencies {
     "com.typesafe.akka" % "akka-stream-testkit_2.11" % "2.4.17"
   )
 
+  val csv = Seq(
+    "com.github.tototoshi" %% "scala-csv" % "1.3.4"
+  )
+
   def flinkDependencies(flinkVersion: String): Seq[ModuleID] = Seq(
     "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
     "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",

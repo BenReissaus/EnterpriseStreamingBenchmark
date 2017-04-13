@@ -75,7 +75,7 @@ class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidat
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
     validationResult.map({ result =>
-      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too few"))
+      assert(!result.fulfillsConstraints())
     })
   }
 
@@ -90,7 +90,7 @@ class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidat
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
     validationResult.map({ result =>
-      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too many"))
+      assert(!result.fulfillsConstraints())
     })
   }
 
@@ -99,7 +99,9 @@ class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidat
 
     val responseTime = 100
     val inStatistics = createStatisticsList(correctResultStats)
-    val outStatistics = createStatisticsList(correctResultStats.map { case (timestamp, value) => (timestamp + responseTime, value) })
+    val outStatistics = createStatisticsList(correctResultStats.map {
+      case (timestamp, value) => (timestamp + responseTime, value)
+    })
     val testSource = Source(inStatistics.zip(outStatistics))
 
     val graph = combineSourceWithSink[Statistics](testSource, sink)

@@ -13,6 +13,10 @@ case class KafkaConsumerConfig(bootstrapServers: String, autoCommit: String,
 
 trait Configurable {
 
+  val relativeValidationPath = "/tools/validator/"
+  val validationPath = System.getProperty("user.dir") + relativeValidationPath
+  val resultsPath = s"$validationPath/results"
+
   val config: ValidatorConfig = loadConfig[ValidatorConfig] match {
     case Failure(f) => throw f
     case Success(conf) => conf

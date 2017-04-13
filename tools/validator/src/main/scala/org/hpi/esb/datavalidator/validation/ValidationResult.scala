@@ -1,12 +1,17 @@
 package org.hpi.esb.datavalidator.validation
 
-import org.hpi.esb.datavalidator.metrics.{CorrectnessMetric, ResponseTimeMetric}
+import org.hpi.esb.datavalidator.metrics.{Correctness, ResponseTime}
 
-class ValidationResult(val correctness: CorrectnessMetric = new CorrectnessMetric(),
-                       val responseTime: ResponseTimeMetric = new ResponseTimeMetric()) {
+object ValidationResult {
+  def getHeader: List[String] = List("Query", "Topic") ++ Correctness.header ++ ResponseTime.header
+}
 
-  def updateCorrectness(isCorrect: Boolean, details: String): Unit = {
-    correctness.update(isCorrect = isCorrect, details = details)
+class ValidationResult(val query: String, topicName: String,
+                       val correctness: Correctness = new Correctness(),
+                       val responseTime: ResponseTime = new ResponseTime()) {
+
+  def updateCorrectness(isCorrect: Boolean): Unit = {
+    correctness.update(isCorrect)
   }
 
   def updateResponseTime(value: Long): Unit = {
@@ -17,15 +22,5 @@ class ValidationResult(val correctness: CorrectnessMetric = new CorrectnessMetri
   responseTime.fulfillsConstraint
 
 
-  override def toString: String = {
-    s"""
-       |-----------------------------------------------
-       |Correctness:
-       |${correctness.getResultMessage}
-       |
-       |ResponseTime:
-       |${responseTime.getResultMessage}
-       |-----------------------------------------------
-     """.stripMargin
-  }
+  def getMeasuredResults: List[String] = List(query, topicName) ++ correctness.getMeasuredResults ++ responseTime.getMeasuredResults
 }

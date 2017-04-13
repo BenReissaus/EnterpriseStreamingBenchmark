@@ -15,7 +15,10 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
                                        outTopicHandler: TopicHandler,
                                        materializer: ActorMaterializer) extends Logging {
 
+
   val valueName: String
+  val queryName: String
+
   val inNumberOfMessages: Long = inTopicHandler.numberOfMessages
   val outNumberOfMessages: Long = outTopicHandler.numberOfMessages
 
@@ -49,7 +52,7 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
 
   def createSink(): Sink[(Option[T], Option[T]), Future[ValidationResult]] = {
 
-    Sink.fold[ValidationResult, (Option[T], Option[T])](new ValidationResult()) {
+    Sink.fold[ValidationResult, (Option[T], Option[T])](new ValidationResult(queryName, inTopicHandler.topicName)) {
       case (validationResult, pair) => updateAndGetValidationResult(validationResult, pair)
     }
   }
@@ -57,18 +60,20 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
   def updateAndGetValidationResult(validationResult: ValidationResult, pair: (Option[T], Option[T])): ValidationResult = {
     pair match {
 
-      case (Some(v1), (Some(v2))) =>
-
-        validationResult.updateResponseTime(getResponseTime(v1, v2))
-        if (v1 != v2) {
-          validationResult.updateCorrectness(isCorrect = false, details = UNEQUAL_VALUES(v1.prettyPrint, v2.prettyPrint))
+      case (Some(expectedValue), (Some(actualValue))) =>
+        validationResult.updateResponseTime(getResponseTime(expectedValue, actualValue))
+        if (expectedValue != actualValue) {
+          validationResult.updateCorrectness(isCorrect = false)
+          logger.error(UNEQUAL_VALUES(inTopicHandler.topicName, expectedValue.prettyPrint, actualValue.prettyPrint))
         }
 
       case (None, (Some(_))) =>
-        validationResult.updateCorrectness(isCorrect = false, details = TOO_MANY_VALUES_CREATED(valueName))
+        validationResult.updateCorrectness(isCorrect = false)
+        logger.error(TOO_MANY_VALUES_CREATED(inTopicHandler.topicName, valueName))
 
       case (Some(_), (None)) =>
-        validationResult.updateCorrectness(isCorrect = false, details = TOO_FEW_VALUES_CREATED(valueName))
+        validationResult.updateCorrectness(isCorrect = false)
+        logger.error(TOO_FEW_VALUES_CREATED(inTopicHandler.topicName, valueName))
 
       case _ =>
     }

@@ -16,11 +16,11 @@ trait IdentityValidationTest {
   val outTopic = "OUT"
 
   val valueTimestamps: List[(Long, String)] = List[(Long, String)](
-    (1, "1"), (500, "2"),  // first window
-    (1000, "3"),(1001, "4"),(1050, "5"))  // second window
+    (1, "1"), (500, "2"), // first window
+    (1000, "3"), (1001, "4"), (1050, "5")) // second window
 
   val inCorrectValueTimestamps: List[(Long, String)] = List[(Long, String)](
-    (999, "999"), (999, "999"),(999, "999"),(999, "999"),(999, "999"))
+    (999, "999"), (999, "999"), (999, "999"), (999, "999"), (999, "999"))
 
 
   implicit val system: ActorSystem = ActorSystem("ESBValidator")
@@ -66,7 +66,7 @@ class IdentityValidationTestAsync extends AsyncFunSuite with IdentityValidationT
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
     validationResult.map({ result =>
-      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too few"))
+      assert(!result.fulfillsConstraints())
     })
   }
 
@@ -81,7 +81,7 @@ class IdentityValidationTestAsync extends AsyncFunSuite with IdentityValidationT
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
     validationResult.map({ result =>
-      assert(!result.fulfillsConstraints() && result.correctness.getResultMessage.contains("Too many"))
+      assert(!result.fulfillsConstraints())
     })
   }
 
@@ -116,7 +116,7 @@ class IdentityValidationTestSync extends FunSuite with IdentityValidationTest wi
 
     validationResult.request(valueTimestamps.length)
 
-    valueTimestamps.foreach { case (_,value) => validationResult.expectNext((Some(SimpleRecord(value.toLong)()), Some(SimpleRecord(value.toLong)())))}
+    valueTimestamps.foreach { case (_, value) => validationResult.expectNext((Some(SimpleRecord(value.toLong)()), Some(SimpleRecord(value.toLong)()))) }
     validationResult.expectComplete()
   }
 

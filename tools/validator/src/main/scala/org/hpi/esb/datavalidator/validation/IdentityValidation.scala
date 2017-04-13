@@ -15,7 +15,8 @@ class IdentityValidation(inTopicHandler: TopicHandler,
                          materializer: ActorMaterializer)
   extends Validation[SimpleRecord](inTopicHandler, outTopicHandler, materializer) with Configurable with Logging {
 
-  val valueName = "SimpleRecords"
+  override val valueName = "SimpleRecords"
+  override val queryName = "Identity Query"
 
   def createSource(): Graph[SourceShape[(Option[SimpleRecord], Option[SimpleRecord])], NotUsed] = {
 
