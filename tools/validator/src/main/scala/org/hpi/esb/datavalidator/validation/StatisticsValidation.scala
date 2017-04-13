@@ -7,7 +7,7 @@ import org.hpi.esb.datavalidator.config.Configurable
 import org.hpi.esb.datavalidator.data.{SimpleRecord, Statistics}
 import org.hpi.esb.datavalidator.kafka.TopicHandler
 import org.hpi.esb.datavalidator.util.Logging
-import org.hpi.esb.datavalidator.validation.graphstage.{AccumulateWhileUnchanged, ZipWhileEitherAvailable}
+import org.hpi.esb.datavalidator.validation.graphstage.{AccumulateWhileUnchanged, IgnoreLastElement, ZipWhileEitherAvailable}
 
 class StatisticsValidation(inTopicHandler: TopicHandler,
                            outTopicHandler: TopicHandler, windowSize: Long,
@@ -26,11 +26,13 @@ class StatisticsValidation(inTopicHandler: TopicHandler,
       import GraphDSL.Implicits._
 
       val zip = builder.add(ZipWhileEitherAvailable[Statistics]())
+      val ignoreLast = builder.add(new IgnoreLastElement[(Option[Statistics], Option[Statistics])]())
 
-      inTopicHandler.topicSource ~> take(inNumberOfMessages) ~> toSimpleRecords ~> collectByWindow ~> calculateStatistics ~> zip.in0
+      inTopicHandler.topicSource ~> take(inNumberOfMessages) ~> toSimpleRecords ~> collectByWindow ~> calculateStatistics  ~> zip.in0
       outTopicHandler.topicSource ~> take(outNumberOfMessages) ~> toStatistics ~> zip.in1
+      zip.out ~> ignoreLast
 
-      SourceShape(zip.out)
+      SourceShape(ignoreLast.out)
     }
   }
 

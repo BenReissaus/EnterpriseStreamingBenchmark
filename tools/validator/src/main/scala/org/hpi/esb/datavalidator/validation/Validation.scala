@@ -69,6 +69,8 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
 
       case (Some(_), (None)) =>
         validationResult.updateCorrectness(isCorrect = false, details = TOO_FEW_VALUES_CREATED(valueName))
+
+      case _ =>
     }
     validationResult
   }

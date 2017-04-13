@@ -12,18 +12,20 @@ import scala.collection.immutable
 
 class AccumulateWhileUnchangedTest extends FunSuite {
 
-  test("test") {
-    val windowSize = 1000
-    def windowStart(timestamp: Long): Long = {
-      timestamp - (timestamp % windowSize)
-    }
+  implicit val system = ActorSystem()
+  implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
+  val windowSize = 1000
+  def windowStart(timestamp: Long): Long = {
+    timestamp - (timestamp % windowSize)
+  }
 
-    implicit val system = ActorSystem()
-    implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
-    val first = immutable.Seq.range(1, 999, 10).map(t => SimpleRecord(1)(t))
-    val second = immutable.Seq.range(1000, 1999, 10).map(t => SimpleRecord(1)(t))
+  val numberOfElements = 3000
 
-    val records = first ++ second
+  test("accumulation of two windows on element stream") {
+
+    val firstWindowElements = immutable.Seq.range(1, 999, 10).map(t => SimpleRecord(1)(t))
+    val secondWindowElements = immutable.Seq.range(1000, 1999, 10).map(t => SimpleRecord(1)(t))
+    val records = firstWindowElements ++ secondWindowElements
 
     val s = TestSink.probe[Seq[SimpleRecord]]
 
@@ -32,9 +34,23 @@ class AccumulateWhileUnchangedTest extends FunSuite {
       .toMat(s)(Keep.both)
       .run()
 
-    sink.request(3000)
-    sink.expectNext(first, second)
+    sink.request(numberOfElements)
+    sink.expectNext(firstWindowElements, secondWindowElements)
     sink.expectComplete()
   }
 
+  test("accumulation on empty stream") {
+
+    val s = TestSink.probe[Seq[SimpleRecord]]
+
+    val records = List[SimpleRecord]()
+
+    val (_, sink) = Source(records)
+      .via(new AccumulateWhileUnchanged(r => windowStart(r.timestamp)))
+      .toMat(s)(Keep.both)
+      .run()
+
+    sink.request(numberOfElements)
+    sink.expectComplete()
+  }
 }

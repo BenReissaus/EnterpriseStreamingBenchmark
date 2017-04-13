@@ -20,8 +20,8 @@ trait StatisticsValidationTest {
   val windowSize = 1000
 
   val valueTimestamps: List[(Long, String)] = List[(Long, String)](
-    (1, "1"), (500, "2"),  // first window
-    (1000, "3"),(1001, "4"),(1050, "5")  // second window
+    (1, "1"), (500, "2"), // first window
+    (1000, "3"), (1001, "4"), (1050, "5") // second window
   )
 
   val correctResultStats = List[(Long, String)](
@@ -35,7 +35,8 @@ trait StatisticsValidationTest {
   )
 }
 
-class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidationTest with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidationTest
+  with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
 
   test("testCreateSink - correctness and response time fulfilled ") {
     val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
@@ -111,7 +112,10 @@ class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidat
   }
 }
 
-class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTest with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTest
+  with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+
+  val numberOfElements = 1000
 
   test("testCreateSource - successful") {
 
@@ -122,8 +126,8 @@ class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTes
     val graph = addTestSink[Statistics](source, system)
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    validationResult.request(5)
-    correctResultStats.foreach {
+    validationResult.request(numberOfElements)
+    correctResultStats.dropRight(1).foreach {
       case (timestamp, value) => val stat = Some(Statistics.deserialize(value, timestamp))
         validationResult.expectNext((stat, stat))
     }
@@ -139,7 +143,7 @@ class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTes
     val graph = addTestSink[Statistics](source, system)
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    validationResult.request(5)
+    validationResult.request(numberOfElements)
     validationResult.expectError()
   }
 
@@ -153,7 +157,7 @@ class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTes
     val graph = addTestSink[Statistics](source, system)
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
-    validationResult.request(5)
+    validationResult.request(numberOfElements)
     validationResult.expectError()
   }
 }
