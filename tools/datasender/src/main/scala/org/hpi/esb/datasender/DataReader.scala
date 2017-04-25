@@ -1,6 +1,6 @@
 package org.hpi.esb.datasender
 
-import org.hpi.esb.util.Logging
+import org.hpi.esb.commons.util.Logging
 
 import scala.io.Source
 

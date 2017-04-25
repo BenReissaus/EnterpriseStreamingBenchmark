@@ -1,6 +1,6 @@
 package org.hpi.esb.config
 
-import org.hpi.esb.util.Logging
+import org.hpi.esb.commons.util.Logging
 
 import scalax.file.Path
 

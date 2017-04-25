@@ -1,6 +1,6 @@
 package org.hpi.esb.datasender
 
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerRecord, RecordMetadata}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{never, times, verify}
 import org.scalatest._
@@ -73,9 +73,9 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
     it("should send each record value to the corresponding kafka topic") {
       val scaledRecords = List("dat0", "dat1", "dat2")
       dataProducerThread.send(Option(scaledRecords))
-      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(0), scaledRecords(0)))
-      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(1), scaledRecords(1)))
-      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(2), scaledRecords(2)))
+      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(0), scaledRecords(0))), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(1), scaledRecords(1))), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(2), scaledRecords(2))), ArgumentMatchers.any())
     }
 
     it("should not send anything to kafka when no record values are passed") {
@@ -84,7 +84,7 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
         mockedKafkaProducer, mockedDataReader, topics)
 
       dataProducerThread.send(None)
-      verify(mockedKafkaProducer, never()).send(ArgumentMatchers.any[ProducerRecord[String, String]])
+      verify(mockedKafkaProducer, never()).send(ArgumentMatchers.any(), ArgumentMatchers.any())
     }
   }
 
@@ -103,9 +103,12 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
 
     it("should send records as long as there are records left") {
       dataProducerThread.run()
-      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topicA, "dat00"))
-      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topicB, "dat01"))
-      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topicC, "dat02"))
+      val callback = new Callback {
+        override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {}
+      }
+      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topicA, "dat00")), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topicB, "dat01")), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topicC, "dat02")), ArgumentMatchers.any())
     }
 
     it("should not send records when there are no records left and shutdown") {

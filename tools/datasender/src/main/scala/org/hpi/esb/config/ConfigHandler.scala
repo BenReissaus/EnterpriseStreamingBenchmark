@@ -1,16 +1,18 @@
 package org.hpi.esb.config
 
+import org.hpi.esb.commons.util.Logging
 import pureconfig.loadConfigFromFiles
 import scopt.OptionParser
 import org.hpi.esb.config
-import org.hpi.esb.util.Logging
 
 import scala.util.{Failure, Success}
 import scalax.file.Path
 
 object ConfigHandler extends Logging {
-  val RelativeDefaultUserConfigPath = "/tools/datasender/datasender.conf"
-  val userConfigPath = System.getProperty("user.dir") + RelativeDefaultUserConfigPath
+  val projectPath = System.getProperty("user.dir")
+  val dataSenderPath = s"$projectPath/tools/datasender"
+  val configName = "datasender.conf"
+  val userConfigPath = s"$dataSenderPath/$configName"
 
   def getConfig(args: Array[String]): Config = {
     val cliConfig = getCliConfig(args)

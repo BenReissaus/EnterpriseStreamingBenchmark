@@ -1,4 +1,4 @@
-package org.hpi.esb.datavalidator.output
+package org.hpi.esb.commons.output
 
 object Tabulator {
   def format(table: Seq[Seq[Any]]): String = table match {

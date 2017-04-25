@@ -3,11 +3,12 @@ package org.hpi.esb.datasender
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.hpi.esb.util.Logging
+import org.hpi.esb.commons.util.Logging
+import org.hpi.esb.config.Configurable
 
 
-class DataProducer(kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,
-                   topics: List[String], numberOfThreads: Int, sendingInterval: Int) extends Logging {
+class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,
+                   topics: List[String], numberOfThreads: Int, sendingInterval: Int) extends Logging with Configurable {
 
 
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(numberOfThreads)
@@ -20,12 +21,15 @@ class DataProducer(kafkaProducer: KafkaProducer[String, String], dataReader: Dat
     kafkaProducer.close()
     executor.shutdown()
     logger.info("Shut data producer down.")
+    dataDriver.printResults()
   }
+
 
   def execute(): Unit = {
     val initialDelay = 0
     val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics)
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, TimeUnit.MICROSECONDS)
-    logger.info("Start sending messages to Apache Kafka.")
+    val seperator = " "
+    logger.info(s"Sending records to following topics: ${topics.mkString(seperator)}")
   }
 }

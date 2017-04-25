@@ -1,11 +1,14 @@
 package org.hpi.esb.datavalidator
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import org.hpi.esb.commons.config.Configs.QueryNames._
 import org.hpi.esb.commons.config.Configs.{QueryConfig, benchmarkConfig}
+import org.hpi.esb.commons.output.{CSVOutput, Tabulator}
 import org.hpi.esb.datavalidator.config.Configurable
 import org.hpi.esb.datavalidator.data.Record
 import org.hpi.esb.datavalidator.kafka.TopicHandler
-import org.hpi.esb.datavalidator.output.{CSVOutput, Tabulator}
 import org.hpi.esb.datavalidator.util.Logging
 import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation, ValidationResult}
 
@@ -14,6 +17,9 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 class Validator() extends Configurable with Logging {
+
+  val currentTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
+  val resultFileName = s"$currentTime.csv"
 
   def execute(): Unit = {
 
@@ -34,7 +40,8 @@ class Validator() extends Configurable with Logging {
   def outputResults(results: List[ValidationResult]): Unit = {
     val rows = results.map(_.getMeasuredResults)
     val table = ValidationResult.getHeader :: rows
-    CSVOutput.write(table, resultsPath)
+
+    CSVOutput.write(table, resultsPath, resultFileName)
     logger.info(Tabulator.format(table))
   }
 

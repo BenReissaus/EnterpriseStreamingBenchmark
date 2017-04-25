@@ -18,7 +18,8 @@ lazy val commons = (project in file("tools/commons")).
   settings(
     libraryDependencies ++= configHandlingDependency,
     libraryDependencies ++= scalaIODependencies,
-    libraryDependencies ++= loggingDependencies
+    libraryDependencies ++= loggingDependencies,
+    libraryDependencies ++= csv
   ).
   settings(
     name := "Commons"
@@ -46,8 +47,7 @@ lazy val validator = (project in file("tools/validator")).
     libraryDependencies ++= configHandlingDependency,
     libraryDependencies ++= testDependencies,
     libraryDependencies ++= metrics,
-    libraryDependencies ++= akka,
-    libraryDependencies ++= csv
+    libraryDependencies ++= akka
   ).
   settings(
     name := "Validator",
