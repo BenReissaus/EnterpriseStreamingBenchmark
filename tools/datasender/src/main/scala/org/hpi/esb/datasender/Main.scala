@@ -21,7 +21,7 @@ object Main extends Logging {
     val dataReader = getDataReader(config.dataReaderConfig)
     val kafkaProducer = getKafkaProducer(config.kafkaProducerConfig)
 
-    val topics: List[String] = Configs.benchmarkConfig.getSourceTopics
+    val topics: List[String] = Configs.benchmarkConfig.sourceTopics
     val seperator = " "
     logger.info(s"Sending records to following topics: ${topics.mkString(seperator)}")
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get

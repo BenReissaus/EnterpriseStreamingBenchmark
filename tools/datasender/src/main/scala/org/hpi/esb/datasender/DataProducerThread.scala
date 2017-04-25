@@ -19,11 +19,10 @@ class DataProducerThread(dataProducer: DataProducer, kafkaProducer: KafkaProduce
 
   def send(messagesOption: Option[List[String]]): Unit = {
     messagesOption.foreach(messages => {
-      messages
-        .zip(topics)
-        .foreach {
-          case (message, topic) => sendToKafka(message, topic)
-        }
+      messages.zip(topics)
+      .foreach {
+        case (message, topic) => sendToKafka(message, topic)
+      }
     })
   }
 

@@ -4,6 +4,7 @@ import kafka.admin.AdminUtils
 import kafka.tools.GetOffsetShell
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.{ZkClient, ZkConnection}
+import org.apache.kafka.common.errors.TopicExistsException
 import org.hpi.esb.commons.config.Configs
 
 import scala.collection.JavaConversions._
@@ -69,12 +70,18 @@ object TopicManagement extends Logging {
   }
 
   def createTopics(): Unit = {
-    val topics = Configs.benchmarkConfig.getAllTopics
+    val topics = Configs.benchmarkConfig.topics
     topics.foreach(topic =>
-      AdminUtils.createTopic(zkUtils,
-        topic,
-        KafkaTopicPartitions,
-        KafkaTopicReplicationFactor))
+      try {
+        AdminUtils.createTopic(zkUtils,
+          topic,
+          KafkaTopicPartitions,
+          KafkaTopicReplicationFactor)
+      }
+      catch {
+        case e: TopicExistsException => logger.info(s"Topic $topic already exists.")
+      }
+    )
 
     zkUtils.close()
   }

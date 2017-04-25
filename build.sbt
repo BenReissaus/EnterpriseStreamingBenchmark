@@ -76,7 +76,8 @@ lazy val flinkCluster = (project in file("implementation/flink/cluster")).
   ).
   settings(
     name := "Flink-Cluster",
-    mainClass in (Compile,run) := Some("org.hpi.esb.flink.Main"),
+    mainClass in (Compile,run) := Some("org.hpi.esb.flink.JobRunner"),
+    mainClass in assembly := Some("org.hpi.esb.flink.JobRunner"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
   ).
   dependsOn(commons)
@@ -95,7 +96,8 @@ lazy val flinkLocal = (project in file("implementation/flink/local")).dependsOn(
   ).
   settings(
     name := "Flink-Local",
-    mainClass in (Compile,run) := Some("org.hpi.esb.flink.Main"),
+    mainClass in (Compile,run) := Some("org.hpi.esb.flink.JobRunner"),
+    mainClass in assembly := Some("org.hpi.esb.flink.JobRunner"),
     // make run command include the provided dependencies
     run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
   ).

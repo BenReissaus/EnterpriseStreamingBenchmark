@@ -17,7 +17,7 @@ class Validator() extends Configurable with Logging {
 
   def execute(): Unit = {
 
-    val topics = benchmarkConfig.getAllTopics
+    val topics = benchmarkConfig.topics
     val queryConfigs = benchmarkConfig.queryConfigs
 
     val topicHandlersByName = topics.map(topic => topic -> TopicHandler.create(topic, AkkaManager.system)).toMap
@@ -41,11 +41,11 @@ class Validator() extends Configurable with Logging {
   def getValidations(queryConfigs: List[QueryConfig], topicHandlersByName: Map[String, TopicHandler]): List[Validation[_ <: Record]] = {
     queryConfigs.map {
 
-      case QueryConfig(sourceName, sinkName, IdentityQuery) =>
-        new IdentityValidation(topicHandlersByName(sourceName), topicHandlersByName(sinkName), AkkaManager.materializer)
+      case QueryConfig(IdentityQuery, inputTopic, outputTopic) =>
+        new IdentityValidation(topicHandlersByName(inputTopic), topicHandlersByName(outputTopic), AkkaManager.materializer)
 
-      case QueryConfig(sourceName, sinkName, StatisticsQuery) =>
-        new StatisticsValidation(topicHandlersByName(sourceName), topicHandlersByName(sinkName), config.windowSize, AkkaManager.materializer)
+      case QueryConfig(StatisticsQuery, inputTopic, outputTopic) =>
+        new StatisticsValidation(topicHandlersByName(inputTopic), topicHandlersByName(outputTopic), config.windowSize, AkkaManager.materializer)
     }
   }
 }

@@ -43,3 +43,6 @@ tools/validator/results/
 
 # configuration files
 **/*.conf
+
+# log files
+**/log/

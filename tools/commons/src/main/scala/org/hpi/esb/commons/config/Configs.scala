@@ -13,44 +13,30 @@ object Configs {
   val benchmarkConfig: BenchmarkConfig = getConfig(configPath)
 
   def getConfig(configPath: String): BenchmarkConfig = {
-
-    val benchmarkArguments: BenchmarkArguments = loadConfigFromFiles[BenchmarkArguments](List(new File(configPath))) match {
+    loadConfigFromFiles[BenchmarkConfig](List(new File(configPath))) match {
       case Failure(f) => f.printStackTrace(); sys.exit(1)
       case Success(conf) => conf
     }
-    benchmarkArguments.getBenchmarkConfig
   }
 
-  case class BenchmarkConfig(queryConfigs: List[QueryConfig]) {
-    def getAllTopics: List[String] = {
-      queryConfigs.flatMap(q => List(q.sourceName, q.sinkName)).distinct
+  case class QueryConfig(queryName: String = "", inputTopic: String = "", outputTopic: String = "")
+
+  case class BenchmarkConfig(topicPrefix: String, topicPostfix: String, queries: List[String], scaleFactor: Int) {
+
+    val queryConfigs: List[QueryConfig]= for {
+      s <- List.range(0, scaleFactor)
+      q <- queries
+    } yield QueryConfig(q, getSourceName(s), getSinkName(s, q))
+
+    val topics: List[String] = queryConfigs.flatMap(q => List(q.inputTopic, q.outputTopic)).distinct
+    val sourceTopics: List[String] = queryConfigs.map(_.inputTopic).distinct
+
+    def getSourceName(stream: Int): String = {
+      s"${topicPrefix}_stream${stream}_$topicPostfix"
     }
 
-    def getSourceTopics: List[String] = {
-      queryConfigs.map(_.sourceName).distinct
-    }
-  }
-
-  case class QueryConfig(sourceName: String, sinkName: String, queryName: String)
-
-  case class BenchmarkArguments(topicPrefix: String, topicPostfix: String, streams: List[String], queries: List[String]) {
-
-    def getBenchmarkConfig: BenchmarkConfig = {
-
-      val queryConfigs = for {
-        s <- streams
-        q <- queries
-      } yield QueryConfig(getSourceName(s), getSinkName(s, q), q)
-
-      BenchmarkConfig(queryConfigs)
-    }
-
-    def getSourceName(stream: String): String = {
-      s"${topicPrefix}_${stream}_$topicPostfix"
-    }
-
-    def getSinkName(stream: String, query: String): String = {
-      s"${topicPrefix}_${stream}_${query}_$topicPostfix"
+    def getSinkName(stream: Int, query: String): String = {
+      s"${topicPrefix}_stream${stream}_${query}_$topicPostfix"
     }
   }
 
