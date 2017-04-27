@@ -1,0 +1,4 @@
+- name: Run validator.
+  shell: java -jar tools/validator/target/scala-2.11/Validator-assembly-0.1.0-SNAPSHOT.jar
+  args:
+    chdir: "~/{{ relative_repository_path }}"

@@ -1,0 +1,6 @@
+---
+
+- name: Compile complete ESB project
+  shell: sbt assembly
+  args:
+    chdir: "{{ home }}/{{ relative_repository_path }}"

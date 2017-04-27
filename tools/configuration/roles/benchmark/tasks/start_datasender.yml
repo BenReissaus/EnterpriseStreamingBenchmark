@@ -1,0 +1,4 @@
+- name: Run datasender.
+  shell: java -jar tools/datasender/target/scala-2.11/DataSender-assembly-0.1.0-SNAPSHOT.jar
+  args:
+    chdir: "~/{{ relative_repository_path }}"

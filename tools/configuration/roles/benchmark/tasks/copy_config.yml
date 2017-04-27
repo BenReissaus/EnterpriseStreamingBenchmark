@@ -1,0 +1,7 @@
+- name: Copy benchmark config to flink master
+  copy:
+    src="~/{{ relative_repository_path }}/tools/commons/commons.conf"
+    dest="{{ benchmarker_home }}/{{ relative_repository_path }}/tools/commons/commons.conf"
+    owner=benchmarker group=benchmarking
+  become: yes
+  become_user: benchmarker

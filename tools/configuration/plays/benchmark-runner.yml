@@ -1,0 +1,34 @@
+---
+
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: "Compile Project"
+      include: ../roles/benchmark/tasks/compile.yml home=~
+    - name: "Create Kafka Topics"
+      include: ../roles/kafka-topic/tasks/create.yml
+
+- hosts: master
+  tasks:
+    - name: "Copy Config File"
+      include: ../roles/benchmark/tasks/copy_config.yml
+    - name: "Compile Project"
+      include: ../roles/benchmark/tasks/compile.yml home={{ benchmarker_home }}
+      become: yes
+      become_user: benchmarker
+    - name: "Start Jobs"
+      include: ../roles/flink/tasks/start_jobs.yml
+    - name: "Waiting a few seconds for streaming jobs to start."
+      pause:
+        seconds: 30
+
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: "Start Datasender"
+      include: ../roles/benchmark/tasks/start_datasender.yml
+    - name: "Waiting a few seconds for streaming system to finish queries."
+      pause:
+        seconds: 30
+    - name: "Start Validator"
+      include: ../roles/benchmark/tasks/start_validator.yml
