@@ -46,8 +46,9 @@ class DataDriver(config: Config) extends Logging {
 
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get
     val sendingInterval = config.dataSenderConfig.sendingInterval.get
+    val singleColumnMode = config.dataSenderConfig.singleColumnMode
 
-    new DataProducer(this, kafkaProducer, dataReader, topics, numberOfThreads, sendingInterval)
+    new DataProducer(this, kafkaProducer, dataReader, topics, numberOfThreads, sendingInterval, singleColumnMode)
   }
 
   def printResults(): Unit = {

@@ -8,7 +8,7 @@ import org.hpi.esb.config.Configurable
 
 
 class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,
-                   topics: List[String], numberOfThreads: Int, sendingInterval: Int) extends Logging with Configurable {
+                   topics: List[String], numberOfThreads: Int, sendingInterval: Int, singleColumnMode: Boolean) extends Logging with Configurable {
 
 
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(numberOfThreads)
@@ -27,7 +27,7 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
 
   def execute(): Unit = {
     val initialDelay = 0
-    val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics)
+    val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics, singleColumnMode)
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, TimeUnit.MICROSECONDS)
     val seperator = " "
     logger.info(s"Sending records to following topics: ${topics.mkString(seperator)}")

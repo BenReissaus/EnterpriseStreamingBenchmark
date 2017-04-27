@@ -3,7 +3,6 @@ package org.hpi.esb.config
 import org.hpi.esb.commons.util.Logging
 import pureconfig.loadConfigFromFiles
 import scopt.OptionParser
-import org.hpi.esb.config
 
 import scala.util.{Failure, Success}
 import scalax.file.Path
@@ -20,10 +19,9 @@ object ConfigHandler extends Logging {
     mergeCliAndFileConfig(cliConfig, fileConfig)
   }
 
-  def getFileConfig() : Config = {
+  def getFileConfig(): Config = {
 
-    if (!Path.fromString(userConfigPath).exists && Path.fromString(userConfigPath).isFile)
-    {
+    if (!Path.fromString(userConfigPath).exists && Path.fromString(userConfigPath).isFile) {
       logger.error(s"The config file '$userConfigPath' does not exist.")
       sys.exit(1)
     }
@@ -39,8 +37,7 @@ object ConfigHandler extends Logging {
     c
   }
 
-  def mergeCliAndFileConfig(cliConfig: CliConfig, fileConfig: Config) : Config =
-  {
+  def mergeCliAndFileConfig(cliConfig: CliConfig, fileConfig: Config): Config = {
     var config = fileConfig
 
 
@@ -51,7 +48,7 @@ object ConfigHandler extends Logging {
 
     if (cliConfig.sendingInterval.isDefined) {
       val newDataSenderConfig = config.dataSenderConfig.copy(sendingInterval = cliConfig.sendingInterval)
-      config = config.copy( dataSenderConfig = newDataSenderConfig)
+      config = config.copy(dataSenderConfig = newDataSenderConfig)
     }
 
     if (cliConfig.verbose) {
@@ -65,30 +62,29 @@ object ConfigHandler extends Logging {
     config
   }
 
-  def getCliConfig(args: Array[String]): CliConfig =
-  {
+  def getCliConfig(args: Array[String]): CliConfig = {
     val parser = new OptionParser[CliConfig]("DataSender") {
       help("help").text("print this usage text")
       // TODO:Extend cli to override arbitrary parts of the configuration
 
       opt[String]('i', "inputPath")
         .optional()
-        .action ( (x,c) => c.copy(dataInputPath = Some(x)))
+        .action((x, c) => c.copy(dataInputPath = Some(x)))
         .text("file to be send line wise")
 
       opt[Int]('s', "sendingInterval")
         .optional()
-        .action ( (x,c) => c.copy(sendingInterval = Some(x)))
+        .action((x, c) => c.copy(sendingInterval = Some(x)))
         .text("interval of send operations")
 
       opt[Unit]('v', "verbose")
         .optional()
-        .action ( (_,c) => c.copy(verbose = true) )
+        .action((_, c) => c.copy(verbose = true))
         .text("be verbose")
 
       note(s"\nDefault user config file is expected at: $userConfigPath")
 
-      checkConfig ( c =>
+      checkConfig(c =>
         if (c.isValid) {
           success
         } else {

@@ -1,7 +1,8 @@
 package org.hpi.esb.config
 
 case class DataSenderConfig(sendingInterval: Option[Int],
-                            numberOfThreads: Option[Int]) extends Configurable {
+                            numberOfThreads: Option[Int],
+                            singleColumnMode: Boolean = false) extends Configurable {
 
   def isValid: Boolean =
     isValidSendingInterval(sendingInterval) &&
