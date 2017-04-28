@@ -6,7 +6,8 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.config.{Config, DataReaderConfig, DataSenderConfig, KafkaProducerConfig}
-import org.hpi.esb.output.ResultWriter
+import org.hpi.esb.datasender.metrics.MetricHandler
+import org.hpi.esb.util.OffsetManagement
 
 import scala.io.Source
 
@@ -51,13 +52,13 @@ class DataDriver(config: Config) extends Logging {
     new DataProducer(this, kafkaProducer, dataReader, topics, numberOfThreads, sendingInterval, singleColumnMode)
   }
 
-  def printResults(): Unit = {
+  def printMetrics(expectedRecordNumber: Int): Unit = {
     val ack = kafkaProducerProperties.get(ProducerConfig.ACKS_CONFIG).asInstanceOf[String]
     val batchSize = kafkaProducerProperties.get(ProducerConfig.BATCH_SIZE_CONFIG).asInstanceOf[String]
     val sendingInterval = config.dataSenderConfig.sendingInterval.get.toString
-    val resultPrinter: ResultWriter = new ResultWriter(kafkaProducer, scaleFactor, ack,
-      batchSize, sendingInterval)
+    val metricHandler: MetricHandler = new MetricHandler(kafkaProducer, topics, scaleFactor, ack,
+      batchSize, sendingInterval, expectedRecordNumber)
 
-    resultPrinter.write()
+    metricHandler.execute()
   }
 }

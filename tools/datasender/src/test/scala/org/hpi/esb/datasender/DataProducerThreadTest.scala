@@ -28,9 +28,9 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
     it("should send each record value to the corresponding kafka topic") {
       val records = List("dat0", "dat1", "dat2")
       dataProducerThread.send(Option(records))
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(0), records(0))), ArgumentMatchers.any())
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(1), records(1))), ArgumentMatchers.any())
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(2), records(2))), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(0), records(0)))
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(1), records(1)))
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(2), records(2)))
     }
 
     it("should not send anything to kafka when no record values are passed") {
@@ -53,9 +53,9 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
     it("should send the same record value to the corresponding kafka topic") {
       val records = List("dat0", "dat1", "dat2")
       dataProducerThread.send(Option(records))
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(0), records(0))), ArgumentMatchers.any())
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(1), records(0))), ArgumentMatchers.any())
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topics(2), records(0))), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(0), records(0)))
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(1), records(0)))
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topics(2), records(0)))
     }
 
     it("should not send anything to kafka when no record values are passed") {
@@ -85,9 +85,9 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
 
     it("should send records as long as there are records left") {
       dataProducerThread.run()
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topicA, "dat00")), ArgumentMatchers.any())
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topicB, "dat01")), ArgumentMatchers.any())
-      verify(mockedKafkaProducer, times(1)).send(ArgumentMatchers.eq(new ProducerRecord[String, String](topicC, "dat02")), ArgumentMatchers.any())
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topicA, "dat00"))
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topicB, "dat01"))
+      verify(mockedKafkaProducer, times(1)).send(new ProducerRecord[String, String](topicC, "dat02"))
     }
 
     it("should not send records when there are no records left and shutdown") {

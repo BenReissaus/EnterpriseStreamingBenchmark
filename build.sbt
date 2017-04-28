@@ -38,7 +38,7 @@ lazy val datasender = (project in file("tools/datasender")).
     name := "DataSender",
     mainClass in assembly := Some("org.hpi.esb.datasender.Main")
   ).
-  dependsOn(commons)
+  dependsOn(commons, util)
 
 lazy val validator = (project in file("tools/validator")).
   settings(commonSettings: _*).

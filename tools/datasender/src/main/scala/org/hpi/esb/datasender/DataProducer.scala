@@ -12,6 +12,7 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
 
 
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(numberOfThreads)
+  val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics, singleColumnMode)
 
   var t: ScheduledFuture[_] = _
 
@@ -21,13 +22,12 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
     kafkaProducer.close()
     executor.shutdown()
     logger.info("Shut data producer down.")
-    dataDriver.printResults()
+    dataDriver.printMetrics(expectedRecordNumber = producerThread.numberOfRecords)
   }
 
 
   def execute(): Unit = {
     val initialDelay = 0
-    val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics, singleColumnMode)
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, TimeUnit.MICROSECONDS)
     val seperator = " "
     logger.info(s"Sending records to following topics: ${topics.mkString(seperator)}")
