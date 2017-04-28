@@ -32,11 +32,11 @@ object Configs {
     val sourceTopics: List[String] = queryConfigs.map(_.inputTopic).distinct
 
     def getSourceName(stream: Int): String = {
-      s"${topicPrefix}_stream${stream}_$topicPostfix"
+      s"$topicPrefix$stream$topicPostfix"
     }
 
     def getSinkName(stream: Int, query: String): String = {
-      s"${topicPrefix}_stream${stream}_${query}_$topicPostfix"
+      s"$topicPrefix$stream$query$topicPostfix"
     }
   }
 
