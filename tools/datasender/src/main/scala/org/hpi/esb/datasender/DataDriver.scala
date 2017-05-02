@@ -5,7 +5,7 @@ import java.util.Properties
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
-import org.hpi.esb.config.{Config, DataReaderConfig, DataSenderConfig, KafkaProducerConfig}
+import org.hpi.esb.datasender.config.{Config, DataReaderConfig, DataSenderConfig, KafkaProducerConfig}
 import org.hpi.esb.datasender.metrics.MetricHandler
 import org.hpi.esb.util.OffsetManagement
 
@@ -39,7 +39,8 @@ class DataDriver(config: Config) extends Logging {
     new DataReader(Source.fromFile(dataReaderConfig.dataInputPath.get),
       dataReaderConfig.columns.get,
       dataReaderConfig.columnDelimiter.get,
-      dataReaderConfig.dataColumnStart.get)
+      dataReaderConfig.dataColumnStart.get,
+      dataReaderConfig.readInRam)
   }
 
   def createDataProducer(kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,

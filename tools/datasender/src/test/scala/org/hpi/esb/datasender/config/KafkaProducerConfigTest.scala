@@ -1,9 +1,9 @@
-package org.hpi.esb.config
+package org.hpi.esb.datasender.config
 
 import org.apache.log4j.Logger
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers, PrivateMethodTester}
+import org.scalatest.{FlatSpec, Matchers}
 
 class KafkaProducerConfigTest extends FlatSpec with Matchers with MockitoSugar {
 

@@ -6,7 +6,7 @@ import java.util.Date
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.hpi.esb.commons.output.{CSVOutput, Tabulator}
 import org.hpi.esb.commons.util.Logging
-import org.hpi.esb.config.ConfigHandler
+import org.hpi.esb.datasender.config.ConfigHandler
 
 class MetricHandler(kafkaProducer: KafkaProducer[String, String], topics: List[String], scaleFactor: String,
                     ack: String, batchSize: String, sendingInterval: String, expectedRecordNumber: Long) extends Logging {

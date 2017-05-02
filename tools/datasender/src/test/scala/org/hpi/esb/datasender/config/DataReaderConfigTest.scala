@@ -1,4 +1,4 @@
-package org.hpi.esb.config
+package org.hpi.esb.datasender.config
 
 import org.apache.log4j.Logger
 import org.mockito.Mockito

@@ -14,7 +14,7 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
   val columns = List("timestamp", "id", "stream0", "stream1", "stream2")
   val tooFewValues = "ts0 id0 dat0 dat0"
   val tooManyValues = "ts0 id0 dat0 dat0 dat1 dat2"
-  val dataReader = new DataReader(mock[Source], columns, columnDelimiter = " ", dataColumnStart = 2)
+  val dataReader = new DataReader(mock[Source], columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
 
   describe("split") {
 
@@ -54,14 +54,14 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
     }
 
     it("should treat the whole line as one element when 'columnDelimiter' is null and therefore return None") {
-      val dataReader = new DataReader(mock[Source], columns, columnDelimiter = null, dataColumnStart = 2)
+      val dataReader = new DataReader(mock[Source], columns, columnDelimiter = null, dataColumnStart = 2, readInRam = false)
       val line = "ts0 id0 dat0 dat1 dat2"
       assert(dataReader.split(line).isEmpty)
     }
 
     it("should allow receiving a regex as columnDelimiter") {
       val delimiter = "\\s+"
-      val dataReader = new DataReader(mock[Source], columns, delimiter, dataColumnStart = 2)
+      val dataReader = new DataReader(mock[Source], columns, delimiter, dataColumnStart = 2, readInRam = false)
       val line = List("ts0", "id0", "dat0", "dat1", "dat2").mkString("\t")
       println(line)
       val values = dataReader.split(line).get
@@ -104,7 +104,7 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
       """.stripMargin)
 
     val columns = List("timestamp", "id", "stream0", "stream1", "stream2")
-    val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2)
+    val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
 
     it("should return the data records as long as there are records left") {
       var recordsOption = dataReader.getRecords
@@ -125,7 +125,7 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
   describe("hasRecords") {
     val source: Source = Source.fromString("ts id dat00 dat01 dat02")
 
-    val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2)
+    val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
 
     it("should return true when record is left") {
       assert(dataReader.hasRecords)

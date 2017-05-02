@@ -4,7 +4,7 @@ import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeU
 
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.hpi.esb.commons.util.Logging
-import org.hpi.esb.config.Configurable
+import org.hpi.esb.datasender.config.Configurable
 
 
 class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,

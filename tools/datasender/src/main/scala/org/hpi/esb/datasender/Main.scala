@@ -1,13 +1,14 @@
 package org.hpi.esb.datasender
 
 import org.hpi.esb.commons.util.Logging
-import org.hpi.esb.config._
+import org.hpi.esb.datasender.config.ConfigHandler
 
 object Main extends Logging {
 
   def main(args: Array[String]): Unit = {
     val config = ConfigHandler.getConfig(args)
     setLogLevel(config.verbose)
+    logger.info("Starting Datasender...")
     new DataDriver(config).run()
   }
 

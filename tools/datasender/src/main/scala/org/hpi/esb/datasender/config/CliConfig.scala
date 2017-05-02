@@ -1,4 +1,4 @@
-package org.hpi.esb.config
+package org.hpi.esb.datasender.config
 
 case class CliConfig(dataInputPath: Option[String] = None,
                      sendingInterval: Option[Int] = None,

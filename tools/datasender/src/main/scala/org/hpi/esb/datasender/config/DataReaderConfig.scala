@@ -1,7 +1,8 @@
-package org.hpi.esb.config
+package org.hpi.esb.datasender.config
 
 case class DataReaderConfig(columns: Option[List[String]], dataColumnStart: Option[Int],
-                            columnDelimiter: Option[String], dataInputPath: Option[String]) extends Configurable {
+                            columnDelimiter: Option[String], dataInputPath: Option[String],
+                           readInRam: Boolean = false) extends Configurable {
 
   def isValid: Boolean = {
     areValidColumns() && isValidDataColumnStart() && isValidColumnDelimiter() &&

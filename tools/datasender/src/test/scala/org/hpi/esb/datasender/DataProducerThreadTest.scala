@@ -77,7 +77,7 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
       """ts id dat00 dat01 dat02
         |ts id dat10 dat11 dat12
       """.stripMargin)
-    val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2)
+    val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
 
     var mockedKafkaProducer: KafkaProducer[String, String] = mock[KafkaProducer[String, String]]
     val dataProducerThread = new DataProducerThread(mockedDataProducer,
@@ -93,7 +93,7 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
     it("should not send records when there are no records left and shutdown") {
       val mockedKafkaProducer = mock[KafkaProducer[String, String]]
       val source: Source = Source.fromString("")
-      val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2)
+      val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
       val dataProducerThread = new DataProducerThread(mockedDataProducer,
         mockedKafkaProducer, dataReader, topics, singleColumnMode)
 

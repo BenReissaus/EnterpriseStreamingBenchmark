@@ -1,5 +1,4 @@
-package org.hpi.esb.config
-
+package org.hpi.esb.datasender.config
 
 case class Config(dataSenderConfig: DataSenderConfig, dataReaderConfig: DataReaderConfig,
                   kafkaProducerConfig: KafkaProducerConfig, verbose: Boolean = false) {

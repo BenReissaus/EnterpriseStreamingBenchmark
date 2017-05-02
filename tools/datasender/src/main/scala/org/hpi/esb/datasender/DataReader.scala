@@ -4,10 +4,10 @@ import org.hpi.esb.commons.util.Logging
 
 import scala.io.Source
 
-class DataReader(val source: Source, columns: List[String], columnDelimiter: String, dataColumnStart: Int)
+class DataReader(val source: Source, columns: List[String], columnDelimiter: String, dataColumnStart: Int, readInRam: Boolean)
   extends Logging {
 
-  private val dataIterator: Iterator[String] = source.getLines
+  private val dataIterator: Iterator[String] = if(readInRam) source.getLines.toList.toIterator else source.getLines
   private val sendWholeLine: Boolean = columns.size == 1
   private val delimiter = Option(columnDelimiter).getOrElse("")
 

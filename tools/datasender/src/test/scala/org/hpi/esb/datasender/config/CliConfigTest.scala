@@ -1,4 +1,4 @@
-package org.hpi.esb.config
+package org.hpi.esb.datasender.config
 
 import org.scalatest.FlatSpec
 

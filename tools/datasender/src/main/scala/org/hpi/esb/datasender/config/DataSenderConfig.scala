@@ -1,4 +1,4 @@
-package org.hpi.esb.config
+package org.hpi.esb.datasender.config
 
 case class DataSenderConfig(sendingInterval: Option[Int],
                             numberOfThreads: Option[Int],
