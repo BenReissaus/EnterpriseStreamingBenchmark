@@ -5,7 +5,7 @@ import org.hpi.esb.commons.output.ValueFormatter.round
 
 import scala.collection.JavaConversions._
 
-class KafkaProducerMetrics(kafkaProducer: KafkaProducer[String, String]) extends DataSenderMetric {
+class KafkaProducerMetrics(kafkaProducer: KafkaProducer[String, String]) extends Metric {
   val recordSendRateMetric = "record-send-rate"
 
   def getMetrics(): Map[String, List[String]] = filterMetric(recordSendRateMetric)

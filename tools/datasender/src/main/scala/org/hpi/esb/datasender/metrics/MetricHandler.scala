@@ -25,7 +25,7 @@ class MetricHandler(kafkaProducer: KafkaProducer[String, String], topics: List[S
   def fetch(): List[List[String]] = {
     val kafkaProducerMetrics = new KafkaProducerMetrics(kafkaProducer)
     val kafkaProducerMetricsValues = kafkaProducerMetrics.getMetrics()
-    val sendMetrics = new FailedSendMetrics(topics, expectedRecordNumber)
+    val sendMetrics = new SendMetrics(topics, expectedRecordNumber)
     val sendMetricsValues = sendMetrics.getMetrics()
 
     val mergedValues = merge(kafkaProducerMetricsValues, sendMetricsValues)
