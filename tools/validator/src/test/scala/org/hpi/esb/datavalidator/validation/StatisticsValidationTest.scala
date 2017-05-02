@@ -129,7 +129,7 @@ class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTes
     val validationResult = RunnableGraph.fromGraph(graph).run()
 
     validationResult.request(numberOfElements)
-    correctResultStats.dropRight(1).foreach {
+    correctResultStats.dropRight(2).foreach {
       case (timestamp, value) => val stat = Some(Statistics.deserialize(value, timestamp))
         validationResult.expectNext((stat, stat))
     }

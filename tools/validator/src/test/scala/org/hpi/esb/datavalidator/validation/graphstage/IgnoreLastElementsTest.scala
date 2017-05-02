@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
 
 import scala.collection.immutable
 
-class IgnoreLastElementTest extends FunSuite {
+class IgnoreLastElementsTest extends FunSuite {
 
   implicit val system = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()(system)
@@ -18,17 +18,18 @@ class IgnoreLastElementTest extends FunSuite {
     val start = 0
     val end = 10
     val values = immutable.Seq.range(start, end)
+    val ignoreCount = 2
 
     val s = TestSink.probe[Int]
 
     val (_, sink) = Source(values)
-      .via(new IgnoreLastElement[Int]())
+      .via(new IgnoreLastElements[Int](ignoreCount))
       .toMat(s)(Keep.both)
       .run()
 
     val numberOfElements = end
     sink.request(numberOfElements)
-    values.dropRight(1).foreach(v => sink.expectNext(v))
+    values.dropRight(ignoreCount).foreach(v => sink.expectNext(v))
     sink.expectComplete()
   }
 
@@ -37,7 +38,7 @@ class IgnoreLastElementTest extends FunSuite {
     val s = TestSink.probe[Int]
 
     val (_, sink) = Source(List[Int]())
-      .via(new IgnoreLastElement[Int]())
+      .via(new IgnoreLastElements[Int](ignoreCount = 2))
       .toMat(s)(Keep.both)
       .run()
 

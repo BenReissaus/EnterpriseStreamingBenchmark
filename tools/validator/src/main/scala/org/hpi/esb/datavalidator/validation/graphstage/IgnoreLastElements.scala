@@ -3,8 +3,10 @@ package org.hpi.esb.datavalidator.validation.graphstage
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 
+import scala.collection.mutable
 
-final class IgnoreLastElement[E]
+
+final class IgnoreLastElements[E](ignoreCount: Int)
   extends GraphStage[FlowShape[E, E]] {
 
   val in = Inlet[E]("IgnoreLastElement.in")
@@ -15,14 +17,14 @@ final class IgnoreLastElement[E]
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
 
     var isBuffered = false
-    var buffer: E = _
+    val buffer: mutable.Queue[E] = new mutable.Queue[E]
 
     setHandlers(in, out, new InHandler with OutHandler {
 
       override def onPush(): Unit = {
 
         if(isBuffered) {
-          push(out, buffer)
+          push(out, buffer.dequeue())
           updateBuffer()
 
         } else {
@@ -35,8 +37,10 @@ final class IgnoreLastElement[E]
       }
 
       def updateBuffer(): Unit = {
-        buffer = grab(in)
-        isBuffered = true
+        buffer.enqueue(grab(in))
+        if(buffer.size == ignoreCount) {
+          isBuffered = true
+        }
       }
 
       override def onPull(): Unit = {
