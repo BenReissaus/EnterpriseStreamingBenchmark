@@ -30,6 +30,7 @@ object Configs {
 
     val topics: List[String] = queryConfigs.flatMap(q => List(q.inputTopic, q.outputTopic)).distinct
     val sourceTopics: List[String] = queryConfigs.map(_.inputTopic).distinct
+    val sinkTopics: List[String] = queryConfigs.map(_.outputTopic).distinct
 
     def getSourceName(stream: Int): String = {
       s"$topicPrefix$stream$topicPostfix"

@@ -60,7 +60,8 @@ lazy val util = (project in file("tools/util")).
   settings(
     libraryDependencies ++= kafka,
     libraryDependencies ++= configHandlingDependency,
-    libraryDependencies ++= testDependencies
+    libraryDependencies ++= testDependencies,
+    libraryDependencies ++= json
   ).
   settings(
     name := "Util",

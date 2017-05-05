@@ -7,6 +7,10 @@
       include: ../roles/benchmark/tasks/compile.yml home=~
     - name: "Create Kafka Topics"
       include: ../roles/kafka-topic/tasks/create.yml
+    - name: "Reassign Kafka Topics"
+      include: ../roles/kafka-topic/tasks/reassign.yml
+    - name: "Reassign Verify Kafka Topics"
+      include: ../roles/kafka-topic/tasks/reassignVerify.yml
 
 - hosts: master
   tasks:

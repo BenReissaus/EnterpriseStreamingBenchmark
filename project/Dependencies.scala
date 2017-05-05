@@ -44,6 +44,10 @@ object Dependencies {
     "com.github.tototoshi" %% "scala-csv" % "1.3.4"
   )
 
+  val json = Seq(
+    "net.liftweb" %% "lift-json" % "3.0.1"
+  )
+
   def flinkDependencies(flinkVersion: String): Seq[ModuleID] = Seq(
     "org.apache.flink" %% "flink-scala" % flinkVersion % "provided",
     "org.apache.flink" %% "flink-streaming-scala" % flinkVersion % "provided",
