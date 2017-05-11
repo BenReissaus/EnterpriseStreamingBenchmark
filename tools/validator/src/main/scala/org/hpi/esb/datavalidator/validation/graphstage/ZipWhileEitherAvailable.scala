@@ -19,9 +19,13 @@ class ZipWhileEitherAvailable[A1, A2, O](val zipper: (Option[A1], Option[A2]) =>
   override def initialAttributes = Attributes.name(name)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
-    var pending = 0
-    var in0C = 0
-    var in1C = 0
+
+    // 'pending' is a status about who has pulled and pushed
+    // if 'pending' > 0 upstream has not pushed and downstream has pulled
+    // if 'pending' < 0 upstream has pushed and downstream has not pulled
+    // if 'pending' == 0 upstream has pushed and downstream has pulled --> we can push
+    var in0Pending = 0
+    var in1Pending = 0
 
     var in0Finished = false
     var in1Finished = false
@@ -52,32 +56,43 @@ class ZipWhileEitherAvailable[A1, A2, O](val zipper: (Option[A1], Option[A2]) =>
     // define how to handle a push from 'in0'
     setHandler(in0, new InHandler {
       override def onPush(): Unit = {
-        pending -= 1
-        in0C += 1
-        if (pending == 0) pushAll()
+        in0Pending -= 1
+        if (in0Pending == 0 && in1Pending == 0) pushAll()
       }
 
       override def onUpstreamFinish(): Unit = {
         in0Finished = true
         if (in1Finished) {
           completeStage()
+        } else if (in0Pending == 1) {
+          in0Pending -= 1
+          if (in1Pending == 0) {
+            // in1 has an element waiting to be pushed
+            pushAll()
+          }
+
         }
       }
-
     })
 
     // define how to handle a push from 'in1'
     setHandler(in1, new InHandler {
       override def onPush(): Unit = {
-        pending -= 1
-        in1C += 1
-        if (pending == 0) pushAll()
+        in1Pending -= 1
+        if (in0Pending == 0 && in1Pending == 0) pushAll()
       }
 
       override def onUpstreamFinish(): Unit = {
         in1Finished = true
         if (in0Finished) {
           completeStage()
+
+        } else if (in1Pending == 1) {
+          in1Pending -= 1
+          if (in0Pending == 0) {
+            // in0 has an element waiting to be pushed
+            pushAll()
+          }
         }
       }
 
@@ -87,12 +102,13 @@ class ZipWhileEitherAvailable[A1, A2, O](val zipper: (Option[A1], Option[A2]) =>
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
 
-        if (!in0Finished && !in1Finished) {
-          pending += shape.inlets.size
-        } else {
-          pending += 1
+        if(!in0Finished) {
+          in0Pending += 1
         }
-        if (pending == 0) pushAll()
+        if(!in1Finished) {
+          in1Pending += 1
+        }
+        if (in0Pending == 0 && in1Pending == 0) pushAll()
       }
     })
   }

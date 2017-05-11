@@ -31,7 +31,7 @@ class StatisticsValidation(inTopicHandler: TopicHandler,
       val zip = builder.add(ZipWhileEitherAvailable[Statistics]())
       val ignoreLastTwoElements = builder.add(new IgnoreLastElements[(Option[Statistics], Option[Statistics])](ignoreCount = 2))
 
-      inTopicHandler.topicSource ~> take(inNumberOfMessages) ~> toSimpleRecords ~> collectByWindow ~> calculateStatistics  ~> zip.in0
+      inTopicHandler.topicSource ~> take(inNumberOfMessages) ~> toSimpleRecords ~> collectByWindow ~> calculateStatistics ~> zip.in0
       outTopicHandler.topicSource ~> take(outNumberOfMessages) ~> toStatistics ~> zip.in1
       zip.out ~> ignoreLastTwoElements
 

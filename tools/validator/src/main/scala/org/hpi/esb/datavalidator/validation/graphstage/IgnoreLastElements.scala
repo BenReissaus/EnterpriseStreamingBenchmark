@@ -23,23 +23,14 @@ final class IgnoreLastElements[E](ignoreCount: Int)
 
       override def onPush(): Unit = {
 
-        if(isBuffered) {
+        buffer.enqueue(grab(in))
+        if(buffer.size == ignoreCount + 1) {
           push(out, buffer.dequeue())
-          updateBuffer()
-
         } else {
-          // The very first time the buffer is empty and nothing will be sent downstream.
+          // As long as the buffer is not full, nothing will be sent downstream.
           // As a result the downstream component will not call 'onPull' and we have
           // to manually pull upstream
-          updateBuffer()
           pull(in)
-        }
-      }
-
-      def updateBuffer(): Unit = {
-        buffer.enqueue(grab(in))
-        if(buffer.size == ignoreCount) {
-          isBuffered = true
         }
       }
 

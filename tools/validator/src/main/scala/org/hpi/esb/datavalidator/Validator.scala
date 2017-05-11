@@ -31,6 +31,11 @@ class Validator() extends Configurable with Logging {
     val validationResults = getValidations(queryConfigs, topicHandlersByName)
       .map(_.execute())
 
+    validationResults.foreach(future => future.onComplete {
+      case Success(results) => logger.info(s"Finshed ${results.query}")
+      case Failure(e) => logger.error(e.getMessage)
+    })
+
     Future.sequence(validationResults).onComplete({
       case Success(results) => outputResults(results); AkkaManager.terminate()
       case Failure(e) => logger.error(e.getMessage); AkkaManager.terminate()
