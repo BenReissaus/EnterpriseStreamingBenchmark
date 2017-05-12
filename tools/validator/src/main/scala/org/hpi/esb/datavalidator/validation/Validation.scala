@@ -7,8 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.hpi.esb.datavalidator.data.{Record, SimpleRecord, Statistics}
 import org.hpi.esb.datavalidator.kafka.TopicHandler
 import org.hpi.esb.datavalidator.metrics.CorrectnessMessages._
-import org.hpi.esb.datavalidator.util.Logging
-
+import org.hpi.esb.commons.util.Logging
 import scala.concurrent.Future
 
 abstract class Validation[T <: Record](inTopicHandler: TopicHandler,

@@ -6,7 +6,7 @@ import akka.stream.scaladsl.{Flow, GraphDSL}
 import org.hpi.esb.datavalidator.config.Configurable
 import org.hpi.esb.datavalidator.data.{SimpleRecord, Statistics}
 import org.hpi.esb.datavalidator.kafka.TopicHandler
-import org.hpi.esb.datavalidator.util.Logging
+import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datavalidator.validation.graphstage.{AccumulateWhileUnchanged, IgnoreLastElements, ZipWhileEitherAvailable}
 
 class StatisticsValidation(inTopicHandler: TopicHandler,

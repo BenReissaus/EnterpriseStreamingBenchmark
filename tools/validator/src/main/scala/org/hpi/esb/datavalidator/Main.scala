@@ -1,6 +1,6 @@
 package org.hpi.esb.datavalidator
 
-import org.hpi.esb.datavalidator.util.Logging
+import org.hpi.esb.commons.util.Logging
 
 object Main {
   def main(args: Array[String]): Unit = {

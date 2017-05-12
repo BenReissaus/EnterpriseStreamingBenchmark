@@ -9,11 +9,10 @@ import org.I0Itec.zkclient.{ZkClient, ZkConnection}
 import org.apache.kafka.common.errors.TopicExistsException
 import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.output.Tabulator
+import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.util.Commands._
-
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-
 
 case class TopicManagementConfig(prefix: String = "", mode: String = "")
 

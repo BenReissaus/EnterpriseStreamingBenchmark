@@ -2,16 +2,14 @@ package org.hpi.esb.datavalidator
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import org.hpi.esb.commons.config.Configs.QueryNames._
 import org.hpi.esb.commons.config.Configs.{QueryConfig, benchmarkConfig}
 import org.hpi.esb.commons.output.{CSVOutput, Tabulator}
 import org.hpi.esb.datavalidator.config.Configurable
 import org.hpi.esb.datavalidator.data.Record
 import org.hpi.esb.datavalidator.kafka.TopicHandler
-import org.hpi.esb.datavalidator.util.Logging
+import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation, ValidationResult}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

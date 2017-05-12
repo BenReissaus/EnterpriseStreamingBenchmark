@@ -3,12 +3,11 @@ package org.hpi.esb.datavalidator.validation
 import akka.NotUsed
 import akka.stream.scaladsl.GraphDSL
 import akka.stream.{ActorMaterializer, Graph, SourceShape}
+import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datavalidator.config.Configurable
 import org.hpi.esb.datavalidator.data.SimpleRecord
 import org.hpi.esb.datavalidator.kafka.TopicHandler
-import org.hpi.esb.datavalidator.util.Logging
 import org.hpi.esb.datavalidator.validation.graphstage.ZipWhileEitherAvailable
-
 
 class IdentityValidation(inTopicHandler: TopicHandler,
                          outTopicHandler: TopicHandler,

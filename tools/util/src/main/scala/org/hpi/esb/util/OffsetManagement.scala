@@ -5,6 +5,7 @@ import kafka.client.ClientUtils
 import kafka.common.TopicAndPartition
 import kafka.consumer.SimpleConsumer
 import kafka.api.TopicMetadata
+import org.hpi.esb.commons.util.Logging
 
 object OffsetManagement extends Logging {
 
