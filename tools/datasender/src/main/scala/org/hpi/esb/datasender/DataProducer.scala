@@ -29,7 +29,7 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
   def execute(): Unit = {
     val initialDelay = 0
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, TimeUnit.MICROSECONDS)
-    val seperator = " "
-    logger.info(s"Sending records to following topics: ${topics.mkString(seperator)}")
+    val allTopics = topics.mkString(" ")
+    logger.info(s"Sending records to following topics: $allTopics")
   }
 }

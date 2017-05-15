@@ -90,7 +90,7 @@ class ZipWhileEitherAvailableTest extends FunSuite {
       sink.expectComplete()
     }
 
-    test("empty 'in2'") {
+    test("empty 'in1'") {
 
       val in1 = List.range(0, 3)
       val (source1, source2, sink) = RunnableGraph.fromGraph(createGraph()).run()
@@ -106,7 +106,7 @@ class ZipWhileEitherAvailableTest extends FunSuite {
       sink.expectComplete()
     }
 
-    test("empty 'in1'") {
+    test("empty 'in2'") {
 
       val in2 = List.range(0, 3)
       val (source1, source2, sink) = RunnableGraph.fromGraph(createGraph()).run()
@@ -122,7 +122,7 @@ class ZipWhileEitherAvailableTest extends FunSuite {
       sink.expectComplete()
     }
 
-  test("empty 'in1' and empty 'in1'") {
+  test("empty 'in1' and empty 'in2'") {
 
     val (source1, source2, sink) = RunnableGraph.fromGraph(createGraph()).run()
     sink.request(3)
