@@ -9,15 +9,14 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.flink.api.scala._
 import org.hpi.esb.flink.CustomAssigner
 
-object KafkaConsumer {
-  var id = new AtomicInteger(0)
-}
 class KafkaConsumer(env: StreamExecutionEnvironment, consumerTopic: String) extends KafkaConnector {
 
-  val id = KafkaConsumer.id.incrementAndGet()
+  // using a UUID is necessary to make sure that no other consumer has the same group ID
+  val uuid = java.util.UUID.randomUUID.toString
+
   // TODO: read properties from file
   props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS)
-  props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, s"Flink_ESB - $id - ${System.currentTimeMillis}")
+  props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, s"$consumerTopic - $uuid")
   props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
 
   val stream = env
