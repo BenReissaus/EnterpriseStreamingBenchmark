@@ -20,6 +20,8 @@
       include: ../roles/benchmark/tasks/compile.yml home={{ benchmarker_home }}
       become: yes
       become_user: benchmarker
+    - name: "Terminate Running Jobs"
+      include: ../roles/flink/tasks/terminate_running_jobs.yml
     - name: "Start Jobs"
       include: ../roles/flink/tasks/start_jobs.yml
     - name: "Waiting a few seconds for streaming jobs to start."
@@ -36,3 +38,8 @@
         seconds: 30
     - name: "Start Validator"
       include: ../roles/benchmark/tasks/start_validator.yml
+
+- hosts: master
+  tasks:
+    - name: "Terminate Running Jobs"
+      include: ../roles/flink/tasks/terminate_running_jobs.yml
