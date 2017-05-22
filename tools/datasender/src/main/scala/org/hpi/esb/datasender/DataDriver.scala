@@ -32,6 +32,8 @@ class DataDriver(config: Config) extends Logging {
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaProducerConfig.valueSerializerClass.get)
     props.put(ProducerConfig.ACKS_CONFIG, kafkaProducerConfig.acks.get)
     props.put(ProducerConfig.BATCH_SIZE_CONFIG, kafkaProducerConfig.batchSize.get.toString)
+    props.put(ProducerConfig.LINGER_MS_CONFIG, kafkaProducerConfig.lingerTime.toString)
+    props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, kafkaProducerConfig.bufferMemorySize.toString)
     props
   }
 
@@ -50,7 +52,8 @@ class DataDriver(config: Config) extends Logging {
     val sendingInterval = config.dataSenderConfig.sendingInterval.get
     val singleColumnMode = config.dataSenderConfig.singleColumnMode
 
-    new DataProducer(this, kafkaProducer, dataReader, topics, numberOfThreads, sendingInterval, singleColumnMode)
+    new DataProducer(this, kafkaProducer, dataReader, topics,
+      numberOfThreads, sendingInterval, singleColumnMode, config.dataSenderConfig.timeUnit)
   }
 
   def printMetrics(expectedRecordNumber: Int): Unit = {

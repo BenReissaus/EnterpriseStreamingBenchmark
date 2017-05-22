@@ -31,7 +31,7 @@ trait Configurable extends Logging {
   }
 
   def isValidSendingInterval(sendingInterval: Option[Int]): Boolean =
-    sendingInterval.isDefined && checkGreaterOrEqual("sending interval", sendingInterval.get, 0)
+    sendingInterval.isDefined && checkGreaterOrEqual("sending interval", sendingInterval.get, 1)
 
   def checkGreaterOrEqual(attributeName: String, attributeValue: Long, valueMinimum: Int): Boolean = {
     val invalid = attributeValue < valueMinimum

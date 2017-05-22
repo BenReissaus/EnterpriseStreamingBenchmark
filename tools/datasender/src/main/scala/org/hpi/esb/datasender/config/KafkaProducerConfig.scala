@@ -1,10 +1,13 @@
 package org.hpi.esb.datasender.config
 
+import KafkaDefaultValues._
 case class KafkaProducerConfig(bootstrapServers: Option[String],
                                keySerializerClass: Option[String],
                                valueSerializerClass: Option[String],
                                acks: Option[String],
-                               batchSize: Option[Int]) extends Configurable {
+                               batchSize: Option[Int],
+                               bufferMemorySize: Long = defaultBufferMemorySize,
+                               lingerTime: Int = defaultLingerTime) extends Configurable {
 
   def isValid: Boolean = areServerAndSerializerAttributesValid && isAcksValid && isBatchSizeValid
 
@@ -34,3 +37,7 @@ $prefix.batchSize = ${opToStr(batchSize)}"""
   }
 }
 
+object KafkaDefaultValues {
+  val defaultBufferMemorySize = 33554432
+  val defaultLingerTime = 0
+}
