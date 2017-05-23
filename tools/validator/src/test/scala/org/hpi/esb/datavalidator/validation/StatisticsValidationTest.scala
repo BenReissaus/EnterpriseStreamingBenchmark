@@ -5,7 +5,6 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{RunnableGraph, Source}
 import org.hpi.esb.datavalidator.data.Statistics
 import org.hpi.esb.datavalidator.kafka.TopicHandler
-import org.hpi.esb.commons.util.Logging
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSuite, BeforeAndAfter, FunSuite}
 
@@ -36,7 +35,7 @@ trait StatisticsValidationTest {
 }
 
 class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidationTest
-  with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+  with ValidationTestHelpers with BeforeAndAfter with MockitoSugar {
 
   test("testCreateSink - correctness and response time fulfilled ") {
     val sink = new StatisticsValidation(mock[TopicHandler], mock[TopicHandler], windowSize, materializer).createSink()
@@ -115,7 +114,7 @@ class StatisticsValidationTestAsync extends AsyncFunSuite with StatisticsValidat
 }
 
 class StatisticsValidationTestSync extends FunSuite with StatisticsValidationTest
-  with ValidationTestHelpers with BeforeAndAfter with Logging with MockitoSugar {
+  with ValidationTestHelpers with BeforeAndAfter with MockitoSugar {
 
   val numberOfElements = 1000
 

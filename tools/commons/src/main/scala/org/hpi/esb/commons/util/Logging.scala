@@ -3,7 +3,7 @@ package org.hpi.esb.commons.util
 import org.apache.log4j.{Level, Logger}
 
 trait Logging {
-  var logger: Logger = Logger.getLogger(this.getClass)
+  var logger: Logger = Logger.getLogger("senskaLogger")
 }
 
 object Logging {

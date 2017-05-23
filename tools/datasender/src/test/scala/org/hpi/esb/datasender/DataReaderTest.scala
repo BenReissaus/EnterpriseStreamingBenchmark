@@ -63,7 +63,6 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
       val delimiter = "\\s+"
       val dataReader = new DataReader(mock[Source], columns, delimiter, dataColumnStart = 2, readInRam = false)
       val line = List("ts0", "id0", "dat0", "dat1", "dat2").mkString("\t")
-      println(line)
       val values = dataReader.split(line).get
       assert(values(0) == "ts0")
       assert(values(1) == "id0")

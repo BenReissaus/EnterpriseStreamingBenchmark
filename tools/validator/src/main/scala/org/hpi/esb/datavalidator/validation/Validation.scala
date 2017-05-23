@@ -14,7 +14,6 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
                                        outTopicHandler: TopicHandler,
                                        materializer: ActorMaterializer) extends Logging {
 
-
   val valueName: String
   val queryName: String
 
