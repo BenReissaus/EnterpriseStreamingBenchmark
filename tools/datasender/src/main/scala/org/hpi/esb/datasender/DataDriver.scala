@@ -7,7 +7,6 @@ import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datasender.config.{Config, DataReaderConfig, DataSenderConfig, KafkaProducerConfig}
 import org.hpi.esb.datasender.metrics.MetricHandler
-import org.hpi.esb.util.OffsetManagement
 
 import scala.io.Source
 
@@ -50,10 +49,13 @@ class DataDriver(config: Config) extends Logging {
 
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get
     val sendingInterval = config.dataSenderConfig.sendingInterval.get
+    val sendingIntervalTimeUnit = config.dataSenderConfig.getSendingIntervalTimeUnit()
+    val duration = config.dataSenderConfig.duration
+    val durationTimeUnit = config.dataSenderConfig.getDurationTimeUnit()
     val singleColumnMode = config.dataSenderConfig.singleColumnMode
 
-    new DataProducer(this, kafkaProducer, dataReader, topics,
-      numberOfThreads, sendingInterval, singleColumnMode, config.dataSenderConfig.timeUnit)
+    new DataProducer(this, kafkaProducer, dataReader, topics, numberOfThreads,
+      sendingInterval, sendingIntervalTimeUnit, duration, durationTimeUnit, singleColumnMode)
   }
 
   def printMetrics(expectedRecordNumber: Int): Unit = {

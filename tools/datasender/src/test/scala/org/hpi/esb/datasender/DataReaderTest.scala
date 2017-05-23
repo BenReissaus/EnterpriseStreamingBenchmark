@@ -72,30 +72,6 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
     }
   }
 
-  describe("getDataMessages") {
-
-    it("should drop the first 2 metadata columns") {
-      val splitsOption = dataReader.getDataRecords(Option(List("ts0", "id0", "dat0", "dat1", "dat2")))
-      assert(splitsOption.isDefined)
-      val splits = splitsOption.get
-      assert(splits.length == 3)
-      assert(splits(0) == "dat0")
-      assert(splits(1) == "dat1")
-      assert(splits(2) == "dat2")
-    }
-
-    it("should return an empty Option when receiving None") {
-      val splitsOption = dataReader.getDataRecords(None)
-      assert(splitsOption.isEmpty)
-    }
-
-    it("should return an Option with an empty List when receiving an empty List") {
-      val splitsOption = dataReader.getDataRecords(Option(List()))
-      assert(splitsOption.isDefined)
-      assert(splitsOption.get == List())
-    }
-  }
-
   describe("getRecords") {
     val source: Source = Source.fromString(
       """ts id dat00 dat01 dat02
@@ -106,17 +82,17 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
     val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
 
     it("should return the data records as long as there are records left") {
-      var recordsOption = dataReader.getRecords
+      var recordsOption = dataReader.readRecords
       assert(recordsOption.isDefined)
       assert(recordsOption.get == List("dat00", "dat01", "dat02"))
 
-      recordsOption = dataReader.getRecords
+      recordsOption = dataReader.readRecords
       assert(recordsOption.isDefined)
       assert(recordsOption.get == List("dat10", "dat11", "dat12"))
     }
 
     it("should return 'None' when no more records are left") {
-      val recordsOption = dataReader.getRecords
+      val recordsOption = dataReader.readRecords
       assert(recordsOption.isEmpty)
     }
   }
@@ -131,7 +107,7 @@ class DataReaderTest extends FunSpec with Matchers with PrivateMethodTester
     }
 
     it("should return false when no records are left") {
-      dataReader.getRecords
+      dataReader.readRecords
       assert(!dataReader.hasRecords)
     }
   }

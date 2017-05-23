@@ -9,11 +9,13 @@ import org.hpi.esb.datasender.config.Configurable
 
 class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, String],
                    dataReader: DataReader, topics: List[String], numberOfThreads: Int,
-                   sendingInterval: Int, singleColumnMode: Boolean,
-                   timeUnit: String) extends Logging with Configurable {
+                   sendingInterval: Int, sendingIntervalTimeUnit: TimeUnit,
+                   duration: Long, durationTimeUnit: TimeUnit, singleColumnMode: Boolean) extends Logging with Configurable {
+
 
   val executor: ScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(numberOfThreads)
-  val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics, singleColumnMode)
+  val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics,
+    singleColumnMode, duration, durationTimeUnit)
 
   var t: ScheduledFuture[_] = _
 
@@ -26,10 +28,9 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
     dataDriver.printMetrics(expectedRecordNumber = producerThread.numberOfRecords)
   }
 
-
   def execute(): Unit = {
     val initialDelay = 0
-    t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, TimeUnit.valueOf(timeUnit))
+    t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, sendingIntervalTimeUnit)
     val allTopics = topics.mkString(" ")
     logger.info(s"Sending records to following topics: $allTopics")
   }

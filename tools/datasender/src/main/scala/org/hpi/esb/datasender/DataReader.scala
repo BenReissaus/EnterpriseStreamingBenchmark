@@ -7,23 +7,38 @@ import scala.io.Source
 class DataReader(val source: Source, columns: List[String], columnDelimiter: String, dataColumnStart: Int, readInRam: Boolean)
   extends Logging {
 
-  private val dataIterator: Iterator[String] = if(readInRam) source.getLines.toList.toIterator else source.getLines
+  private var dataIterator: Iterator[String] = if(readInRam) recordList.toIterator else source.getLines
   private val sendWholeLine: Boolean = columns.size == 1
   private val delimiter = Option(columnDelimiter).getOrElse("")
+  private lazy val recordList = source.getLines.toList
 
   def hasRecords: Boolean = dataIterator.hasNext
 
-  def getRecords: Option[List[String]] = {
+  def readRecords: Option[List[String]] = {
     if (dataIterator.hasNext) {
-      val line = dataIterator.next()
-      if (sendWholeLine) {
-        Option(List(line))
-      }
-      else {
-        getDataRecords(split(line))
-      }
+      getRecords
     } else {
-      None
+      resetIterator()
+      getRecords
+    }
+  }
+
+  def getRecords: Option[List[String]] = {
+    val line = dataIterator.next()
+    if (sendWholeLine) {
+      Option(List(line))
+    }
+    else {
+      val multipleRecords = split(line)
+      multipleRecords.map(_.drop(dataColumnStart))
+    }
+  }
+
+  def resetIterator(): Unit = {
+    if(readInRam) {
+      dataIterator = recordList.toIterator
+    } else {
+      dataIterator = source.reset().getLines()
     }
   }
 
@@ -40,10 +55,6 @@ class DataReader(val source: Source, columns: List[String], columnDelimiter: Str
     else {
       Option(splits)
     }
-  }
-
-  def getDataRecords(splitsOption: Option[List[String]]): Option[List[String]] = {
-    splitsOption.map(_.drop(dataColumnStart))
   }
 
   def close(): Unit = source.close
