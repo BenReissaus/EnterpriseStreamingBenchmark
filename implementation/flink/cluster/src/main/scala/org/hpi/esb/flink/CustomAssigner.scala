@@ -6,27 +6,31 @@ import org.apache.flink.streaming.api.watermark.Watermark
 class CustomAssigner extends AssignerWithPeriodicWatermarks[String] {
 
   val activityThreshold = 10000
-  val latenessThreshold = 100
-
   var maxObservedEventTimestamp: Long = 0L
-  var lastElementObserved: Long = Long.MaxValue
+  var lastTimeElementObserved: Long = Long.MaxValue
 
   override def getCurrentWatermark: Watermark = {
 
     val currentSystemTime = System.currentTimeMillis()
 
-    // if last element was observed more than 10 seconds ago, update watermark with current system time to finish windows
-    val watermark = if (lastElementObserved < (currentSystemTime - activityThreshold))
+    val watermark = if (reachedEnd(currentSystemTime)) {
       new Watermark(currentSystemTime)
-    else
-      new Watermark(maxObservedEventTimestamp - latenessThreshold)
+    } else {
+      // have to subtract 1 since more elements with exact timestamp could still arrive
+      new Watermark(maxObservedEventTimestamp - 1)
+    }
 
     watermark
   }
 
   override def extractTimestamp(element: String, previousElementTimestamp: Long): Long = {
-    lastElementObserved = System.currentTimeMillis()
-    maxObservedEventTimestamp = Math.max(maxObservedEventTimestamp, previousElementTimestamp)
+    lastTimeElementObserved = System.currentTimeMillis()
+    maxObservedEventTimestamp = previousElementTimestamp
     previousElementTimestamp
+  }
+
+  def reachedEnd(currentSystemTime: Long): Boolean = {
+    // the stream end is assumed to be reached if last element was observed more than 10 seconds ago
+    (currentSystemTime - activityThreshold) > lastTimeElementObserved
   }
 }
