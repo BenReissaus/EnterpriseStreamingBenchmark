@@ -1,0 +1,6 @@
+
+- replace:
+    path: '{{ home }}/{{ relative_repository_path }}/tools/commons/commons.conf'
+    regexp: '^topicPostfix = ".*"$'
+    replace: 'topicPostfix = "{{ postfix }}"'
+  when: postfix is defined

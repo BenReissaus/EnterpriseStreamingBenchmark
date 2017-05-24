@@ -3,6 +3,19 @@
 - hosts: 127.0.0.1
   connection: local
   tasks:
+    - name: "Set Topic Postfix."
+      include: ../roles/benchmark/tasks/set_topic_postfix.yml home=~ postfix="{{ topic_postfix }}"
+      when: topic_postfix is defined
+    - name: "Set Sending Interval"
+      include: ../roles/benchmark/tasks/set_sending_interval.yml home=~ interval="{{ sending_interval }}"
+      when: sending_interval is defined
+    - name: "Set Scale Factor"
+      include: ../roles/benchmark/tasks/set_scale_factor.yml home=~ sf="{{ scale_factor }}"
+      when: scale_factor is defined
+
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
     - name: "Compile Project"
       include: ../roles/benchmark/tasks/compile.yml home=~
     - name: "Create Kafka Topics"

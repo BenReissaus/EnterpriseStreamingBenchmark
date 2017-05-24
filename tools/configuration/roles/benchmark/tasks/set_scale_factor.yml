@@ -1,0 +1,6 @@
+
+- replace:
+    path: '{{ home }}/{{ relative_repository_path }}/tools/commons/commons.conf'
+    regexp: '^scaleFactor = .*$'
+    replace: 'scaleFactor = {{ sf }}'
+  when: sf is defined

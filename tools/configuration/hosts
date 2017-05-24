@@ -12,7 +12,6 @@ bench01 ansible_host=vm-hesse-bench01.eaalab.hpi.uni-potsdam.de
 [slaves]
 bench02 ansible_host=vm-hesse-bench02.eaalab.hpi.uni-potsdam.de
 bench03 ansible_host=vm-hesse-bench03.eaalab.hpi.uni-potsdam.de
-bench04 ansible_host=vm-hesse-bench04.eaalab.hpi.uni-potsdam.de
 
 [kafka_cluster]
 kafka ansible_host=192.168.30.208

@@ -1,0 +1,10 @@
+---
+
+- include: benchmark-runner.yml topic_postfix="A" sending_interval="100" scale_factor=1
+- include: benchmark-runner.yml topic_postfix="B" sending_interval="100" scale_factor=1
+- include: benchmark-runner.yml topic_postfix="C" sending_interval="100" scale_factor=1
+
+- include: benchmark-runner.yml topic_postfix="D" sending_interval="1000" scale_factor=1
+- include: benchmark-runner.yml topic_postfix="E" sending_interval="1000" scale_factor=1
+- include: benchmark-runner.yml topic_postfix="F" sending_interval="1000" scale_factor=1
+
