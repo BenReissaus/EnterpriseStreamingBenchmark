@@ -14,7 +14,7 @@ object OffsetManagement extends Logging {
     val clientId = "GetOffset"
 
     val topicsMetadata = getMetaData(topic, clientId)
-    getOffset(topicsMetadata, topic, partition, clientId)
+    getLatestOffset(topicsMetadata, topic, partition, clientId)
   }
 
   private def getMetaData(topic: String, clientId: String) = {
@@ -32,7 +32,7 @@ object OffsetManagement extends Logging {
     topicsMetadata
   }
 
-  private def getOffset(topicsMetadata: Seq[TopicMetadata], topic: String, partition: Int, clientId: String) = {
+  private def getLatestOffset(topicsMetadata: Seq[TopicMetadata], topic: String, partition: Int, clientId: String) = {
 
     val partitionMetadataOpt = topicsMetadata.head.partitionsMetadata.find(_.partitionId == partition)
     val time = -1

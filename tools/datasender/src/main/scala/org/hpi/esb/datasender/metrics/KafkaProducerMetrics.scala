@@ -6,31 +6,35 @@ import org.hpi.esb.commons.output.ValueFormatter.round
 import scala.collection.JavaConversions._
 
 class KafkaProducerMetrics(kafkaProducer: KafkaProducer[String, String]) extends Metric {
-  val recordSendRateMetric = "record-send-rate"
+  val desiredMetrics = List("batch-size-avg", "record-send-rate", "records-per-request-avg",
+    "record-error-rate", "record-queue-time-avg", "buffer-exhausted-rate",
+    "bufferpool-wait-ratio", "request-latency-max", "waiting-threads",
+  "buffer-available-bytes")
 
-  def getMetrics(): Map[String, List[String]] = filterMetric(recordSendRateMetric)
-  def getValueNames(): List[String] = List(recordSendRateMetric)
+  override def getMetrics(): Map[String, String] = filterMetric(desiredMetrics)
 
   /**
     * filter the desired metric from all available kafka producer metrics
     * per topic and overall
     *
-    * @param name
+    * @param desiredMetrics
     * @return
     */
-  def filterMetric(name: String): Map[String, List[String]] = {
+  def filterMetric(desiredMetrics: List[String]): Map[String, String] = {
     val accMetrics = Map[String, String]()
-    val filteredMetris = kafkaProducer.metrics().foldLeft(accMetrics) {
-      case (acc, (metricName, metric)) if metricName.name() == name => {
-        val key = if (metricName.group() == "producer-metrics") "overall" else metricName.tags().get("topic")
-        val value = round(metric.value(), precision = 2)
-        val newAcc = acc ++ Map[String, String](key -> value.toString)
-        newAcc
+    kafkaProducer.metrics().foldLeft(accMetrics) {
+      case (acc, (metricName, metric)) => {
+        if (desiredMetrics.contains(metricName.name()) &&
+          metricName.group() == "producer-metrics") {
+          val key = metricName.name()
+          val value = round(metric.value(), precision = 2)
+          acc ++ Map[String, String](key -> value.toString)
+        } else {
+          acc
+        }
       }
       case (acc, _) => acc
     }
-
-    filteredMetris.map { case (key, value) => key -> List(value) }
   }
 
 }

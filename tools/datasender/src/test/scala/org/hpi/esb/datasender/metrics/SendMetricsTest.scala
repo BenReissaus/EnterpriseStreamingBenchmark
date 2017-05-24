@@ -8,8 +8,8 @@ import org.hpi.esb.datasender.TestHelper.checkEquality
 class SendMetricsTest extends FunSpec with MockitoSugar {
 
   val expectedRecordNumber = 1000
-  val topics = List("A", "B")
-  val sendMetrics = new SendMetrics(topics, expectedRecordNumber)
+  val topicOffsets = Map("A" -> 10L, "B" -> 20L)
+  val sendMetrics = new SendMetrics(topicOffsets, expectedRecordNumber)
 
   describe("getFailedSendsPercentage") {
 
@@ -32,14 +32,17 @@ class SendMetricsTest extends FunSpec with MockitoSugar {
     val perTopicSendMetrics = Map("A" -> SendResult(expectedRecordNumber = 100L, failedSends = 10L),
       "B" -> SendResult(expectedRecordNumber = 100L, failedSends = 5L))
 
-    val expectedAccumulatedSendMetrics = perTopicSendMetrics ++ Map("overall" -> SendResult(expectedRecordNumber = 200L, failedSends = 15L))
-    val expectedRecordNumber = 100
+    val expectedAccumulatedSendMetrics = Map(
+      "expectedRecordNumber" -> 200L.toString,
+      "failedSends" -> 15L.toString,
+      "failedPercentage" -> 0.075.toString)
+
     val accumulatedSendMetrics = sendMetrics.getAccumulatedSendResults(perTopicSendMetrics)
 
     it("should calculate the correct overall stats") {
 
-      checkEquality[String, SendResult](expectedAccumulatedSendMetrics, accumulatedSendMetrics)
-      checkEquality[String, SendResult](accumulatedSendMetrics, expectedAccumulatedSendMetrics)
+      checkEquality[String, String](expectedAccumulatedSendMetrics, accumulatedSendMetrics)
+      checkEquality[String, String](accumulatedSendMetrics, expectedAccumulatedSendMetrics)
     }
   }
 }

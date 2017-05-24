@@ -5,19 +5,18 @@ import java.util.Properties
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
-import org.hpi.esb.datasender.config.{Config, DataReaderConfig, DataSenderConfig, KafkaProducerConfig}
-import org.hpi.esb.datasender.metrics.MetricHandler
+import org.hpi.esb.datasender.config._
 
 import scala.io.Source
 
 class DataDriver(config: Config) extends Logging {
 
   private val topics = Configs.benchmarkConfig.sourceTopics
-  private val scaleFactor = Configs.benchmarkConfig.scaleFactor.toString
   private val dataReader = createDataReader(config.dataReaderConfig)
   private val kafkaProducerProperties = createKafkaProducerProperties(config.kafkaProducerConfig)
   private val kafkaProducer = new KafkaProducer[String, String](kafkaProducerProperties)
-  private val dataProducer = createDataProducer(kafkaProducer, dataReader, config.dataSenderConfig)
+  private val resultHandler = new ResultHandler(config, Configs.benchmarkConfig, kafkaProducer)
+  private val dataProducer = createDataProducer(kafkaProducer, dataReader, resultHandler)
 
   def run(): Unit = {
     dataProducer.execute()
@@ -45,7 +44,7 @@ class DataDriver(config: Config) extends Logging {
   }
 
   def createDataProducer(kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,
-                         dataSenderConfig: DataSenderConfig): DataProducer = {
+                         resultHandler: ResultHandler): DataProducer = {
 
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get
     val sendingInterval = config.dataSenderConfig.sendingInterval.get
@@ -54,17 +53,7 @@ class DataDriver(config: Config) extends Logging {
     val durationTimeUnit = config.dataSenderConfig.getDurationTimeUnit()
     val singleColumnMode = config.dataSenderConfig.singleColumnMode
 
-    new DataProducer(this, kafkaProducer, dataReader, topics, numberOfThreads,
+    new DataProducer(resultHandler, kafkaProducer, dataReader, topics, numberOfThreads,
       sendingInterval, sendingIntervalTimeUnit, duration, durationTimeUnit, singleColumnMode)
-  }
-
-  def printMetrics(expectedRecordNumber: Int): Unit = {
-    val ack = kafkaProducerProperties.get(ProducerConfig.ACKS_CONFIG).asInstanceOf[String]
-    val batchSize = kafkaProducerProperties.get(ProducerConfig.BATCH_SIZE_CONFIG).asInstanceOf[String]
-    val sendingInterval = config.dataSenderConfig.sendingInterval.get.toString
-    val metricHandler: MetricHandler = new MetricHandler(kafkaProducer, topics, scaleFactor, ack,
-      batchSize, sendingInterval, expectedRecordNumber)
-
-    metricHandler.execute()
   }
 }

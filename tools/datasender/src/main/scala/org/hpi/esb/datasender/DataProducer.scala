@@ -5,9 +5,10 @@ import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeU
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datasender.config.Configurable
+import org.hpi.esb.util.OffsetManagement
 
 
-class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, String],
+class DataProducer(resultHandler: ResultHandler, kafkaProducer: KafkaProducer[String, String],
                    dataReader: DataReader, topics: List[String], numberOfThreads: Int,
                    sendingInterval: Int, sendingIntervalTimeUnit: TimeUnit,
                    duration: Long, durationTimeUnit: TimeUnit, singleColumnMode: Boolean) extends Logging with Configurable {
@@ -17,6 +18,8 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
   val producerThread = new DataProducerThread(this, kafkaProducer, dataReader, topics,
     singleColumnMode, duration, durationTimeUnit)
 
+  val topicOffsets = getTopicOffsets()
+
   var t: ScheduledFuture[_] = _
 
   def shutDown(): Unit = {
@@ -25,7 +28,8 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
     kafkaProducer.close()
     executor.shutdown()
     logger.info("Shut data producer down.")
-    dataDriver.printMetrics(expectedRecordNumber = producerThread.numberOfRecords)
+    val expectedRecordNumber = producerThread.numberOfRecords
+    resultHandler.outputResults(topicOffsets, expectedRecordNumber)
   }
 
   def execute(): Unit = {
@@ -33,5 +37,12 @@ class DataProducer(dataDriver: DataDriver, kafkaProducer: KafkaProducer[String, 
     t = executor.scheduleAtFixedRate(producerThread, initialDelay, sendingInterval, sendingIntervalTimeUnit)
     val allTopics = topics.mkString(" ")
     logger.info(s"Sending records to following topics: $allTopics")
+  }
+
+  def getTopicOffsets(): Map[String, Long] = {
+    topics.map(topic => {
+      val currentOffset = OffsetManagement.getNumberOfMessages(topic, partition = 0)
+      topic -> currentOffset
+    }).toMap[String, Long]
   }
 }

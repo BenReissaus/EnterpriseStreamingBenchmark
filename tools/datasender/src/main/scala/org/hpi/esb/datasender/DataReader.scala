@@ -16,14 +16,14 @@ class DataReader(val source: Source, columns: List[String], columnDelimiter: Str
 
   def readRecords: Option[List[String]] = {
     if (dataIterator.hasNext) {
-      getRecords
+      retrieveRecords()
     } else {
       resetIterator()
-      getRecords
+      retrieveRecords()
     }
   }
 
-  def getRecords: Option[List[String]] = {
+  def retrieveRecords(): Option[List[String]] = {
     val line = dataIterator.next()
     if (sendWholeLine) {
       Option(List(line))

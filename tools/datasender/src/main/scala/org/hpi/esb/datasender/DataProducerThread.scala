@@ -9,7 +9,6 @@ class DataProducerThread(dataProducer: DataProducer, kafkaProducer: KafkaProduce
                          dataReader: DataReader, topics: List[String], singleColumnMode: Boolean,
                          duration: Long, durationTimeUnit: TimeUnit) extends Runnable with Logging {
 
-  val scaleFactor: Int = Option(topics).getOrElse(List()).length
   var numberOfRecords: Int = 0
   val startTime: Long = currentTime
   val endTime: Long = startTime + durationTimeUnit.toMillis(duration)

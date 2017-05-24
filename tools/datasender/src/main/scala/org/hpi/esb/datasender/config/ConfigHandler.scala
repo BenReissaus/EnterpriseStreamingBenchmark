@@ -99,4 +99,22 @@ object ConfigHandler extends Logging {
     }
   }
 
+  def getImportantConfigValues(config: Config): Map[String, String] = {
+    val sendingInterval = config.dataSenderConfig.sendingInterval.get
+    val sendingIntervalTimeUnit = config.dataSenderConfig.sendingIntervalTimeUnit
+    val lingerTime = config.kafkaProducerConfig.lingerTime
+    val batchSize = config.kafkaProducerConfig.batchSize
+    val bufferMemorySize = config.kafkaProducerConfig.bufferMemorySize
+    val readInRam = config.dataReaderConfig.readInRam
+
+    Map(
+      "batchSize" -> batchSize.get.toString,
+      "bufferMemorySize" -> bufferMemorySize.toString,
+      "lingerTime" -> lingerTime.toString,
+      "readInRam" -> readInRam.toString,
+      "sendingInterval" -> sendingInterval.toString,
+      "sendingIntervalTimeUnit" -> sendingIntervalTimeUnit
+    )
+  }
+
 }

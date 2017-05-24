@@ -19,39 +19,35 @@ case class SendResult(expectedRecordNumber: Long = 0, failedSends: Long = 0) {
     SendResult(sumExpectedRecordNumber, sumFailedSends)
   }
 }
-class SendMetrics(topics: List[String], expectedTopicNumber: Long) extends Metric {
+
+class SendMetrics(topicStartOffsets: Map[String, Long], expectedTopicNumber: Long) extends Metric {
 
   val expectedRecordNumberName = "expectedRecordNumber"
   val failedSendsName = "failedSends"
   val failedPercentageName = "failedPercentage"
 
-  //returns Map of form ("topic" -> List("expectedRecordNumber", "failedSends", "failedPercentage")
-  override def getMetrics(): Map[String, List[String]] = {
-    val sendResults = topics.map(topic =>
-      topic -> getSendResultForTopic(topic, expectedTopicNumber)).toMap
-
-    val accumulatedSendResults = getAccumulatedSendResults(sendResults)
-
-    accumulatedSendResults.map { case (topic, sendResult) =>
-      topic -> List(sendResult.expectedRecordNumber.toString,
-        sendResult.failedSends.toString,
-        sendResult.failedSendsPercentage().toString)
+  override def getMetrics(): Map[String, String] = {
+    val sendResults = topicStartOffsets.map { case (topic, startOffset) =>
+      topic -> getSendResultForTopic(topic, startOffset, expectedTopicNumber)
     }
+
+    getAccumulatedSendResults(sendResults)
   }
 
-  def getSendResultForTopic(topic: String, expectedRecordNumber: Long): SendResult = {
-    val realRecordNumber = OffsetManagement.getNumberOfMessages(topic, partition = 0)
-    val failedSends = expectedRecordNumber - realRecordNumber
+  def getSendResultForTopic(topic: String, offset: Long, expectedRecordNumber: Long): SendResult = {
+    val latestOffset = OffsetManagement.getNumberOfMessages(topic, partition = 0)
+    val actualRecordNumber = latestOffset - offset
+    val failedSends = expectedRecordNumber - actualRecordNumber
     SendResult(expectedRecordNumber = expectedRecordNumber, failedSends = failedSends)
   }
 
-  def getAccumulatedSendResults(sendMetrics: Map[String, SendResult]): Map[String, SendResult] = {
+  def getAccumulatedSendResults(sendMetrics: Map[String, SendResult]): Map[String, String] = {
 
     val overallSendResults = sendMetrics.foldLeft(SendResult()) {
       case (acc, (_, SendResult(expectedRecordNumber, failedSends))) => acc.update(expectedRecordNumber, failedSends) }
 
-    sendMetrics + ("overall" -> overallSendResults)
+    Map(expectedRecordNumberName -> overallSendResults.expectedRecordNumber.toString,
+      failedSendsName -> overallSendResults.failedSends.toString,
+      failedPercentageName -> overallSendResults.failedSendsPercentage().toString)
   }
-
-  override def getValueNames(): List[String] = List(expectedRecordNumberName, failedSendsName, failedPercentageName)
 }
