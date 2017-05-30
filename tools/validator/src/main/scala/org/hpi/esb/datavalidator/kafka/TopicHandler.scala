@@ -15,10 +15,14 @@ object TopicHandler {
 
   def create(topicName: String, system: ActorSystem): TopicHandler = {
 
+    val uuid = java.util.UUID.randomUUID.toString
     val consumerSettings: ConsumerSettings[String, String] = ConsumerSettings(system, new StringDeserializer, new StringDeserializer)
       .withBootstrapServers("192.168.30.208:9092,192.168.30.207:9092,192.168.30.141:9092")
-      .withGroupId("group1")
+      .withGroupId(uuid)
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+      .withProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, Int.MaxValue.toString)
+      .withProperty(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, Int.MaxValue.toString)
+      .withProperty(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, "20485000")
 
     val partition = 0
     val topicSource = createSource(consumerSettings, topicName, partition)

@@ -18,8 +18,10 @@ class Validator() extends Configurable with Logging {
 
   val currentTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
   val resultFileName = s"$currentTime.csv"
+  val startTime: Long = currentTimeInSecs()
 
   def execute(): Unit = {
+    logger.info(s"Start time: $startTime")
 
     val topics = benchmarkConfig.topics
     val queryConfigs = benchmarkConfig.queryConfigs
@@ -35,9 +37,17 @@ class Validator() extends Configurable with Logging {
     })
 
     Future.sequence(validationResults).onComplete({
-      case Success(results) => outputResults(results); AkkaManager.terminate()
-      case Failure(e) => logger.error(e.getMessage); AkkaManager.terminate()
+      case Success(results) => outputResults(results); terminate()
+      case Failure(e) => logger.error(e.getMessage); terminate()
     })
+  }
+
+  def terminate(): Unit = {
+    AkkaManager.terminate()
+    val endTime = currentTimeInSecs()
+    val executionTime = endTime - startTime
+    logger.info(s"End time: $endTime")
+    logger.info(s"Total execution time in seconds: $executionTime")
   }
 
   def outputResults(results: List[ValidationResult]): Unit = {
@@ -58,4 +68,6 @@ class Validator() extends Configurable with Logging {
         new StatisticsValidation(topicHandlersByName(inputTopic), topicHandlersByName(outputTopic), config.windowSize, AkkaManager.materializer)
     }
   }
+
+  def currentTimeInSecs(): Long = System.currentTimeMillis() / 1000
 }
