@@ -8,10 +8,10 @@ class BenchmarkRunResultMergerTest extends FunSpec {
   val benchmarkRunResultMerger = new BenchmarkRunResultMerger()
   describe("getAverageOfRunResultValues") {
     it("should return correctly calculated averages") {
-      val results = List(Map("batch-size-avg" -> 100.toString, "failedSends" -> 10.toString),
+      val results = List(Map("batch-size-avg" -> 100.toDouble.toString, "failedSends" -> 10.toDouble.toString),
         Map("batch-size-avg" -> 200.toString, "failedSends" -> 20.toString))
       val averageResults = benchmarkRunResultMerger.getAverageOfRunResultValues(results)
-      val expectedAverageResults = Map("batch-size-avg" -> 150.toDouble.toString, "failedSends" -> 15.toDouble.toString)
+      val expectedAverageResults = Map("batch-size-avg" -> f"${150.toDouble}%1.0f", "failedSends" -> f"${15.toDouble}%1.0f")
 
       assert((averageResults.toSet diff expectedAverageResults.toSet).isEmpty)
     }
