@@ -41,8 +41,5 @@ modules.xml
 # results
 **/results/
 
-# configuration files
-**/*.conf
-
 # log files
 **/log/
