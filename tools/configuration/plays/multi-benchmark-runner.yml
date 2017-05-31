@@ -1,10 +1,48 @@
 ---
 
-- include: benchmark-runner.yml topic_postfix="A" sending_interval="100" scale_factor=1
-- include: benchmark-runner.yml topic_postfix="B" sending_interval="100" scale_factor=1
-- include: benchmark-runner.yml topic_postfix="C" sending_interval="100" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBA" benchmark_run=1 sending_interval="100000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBA" benchmark_run=2 sending_interval="100000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBA" benchmark_run=3 sending_interval="100000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
 
-- include: benchmark-runner.yml topic_postfix="D" sending_interval="1000" scale_factor=1
-- include: benchmark-runner.yml topic_postfix="E" sending_interval="1000" scale_factor=1
-- include: benchmark-runner.yml topic_postfix="F" sending_interval="1000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBB" benchmark_run=1 sending_interval="50000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBB" benchmark_run=2 sending_interval="50000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBB" benchmark_run=3 sending_interval="50000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
 
+- include: benchmark-runner.yml topic_prefix="ESBC" benchmark_run=1 sending_interval="20000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBC" benchmark_run=2 sending_interval="20000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBC" benchmark_run=3 sending_interval="20000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: benchmark-runner.yml topic_prefix="ESBD" benchmark_run=1 sending_interval="15000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBD" benchmark_run=2 sending_interval="15000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBD" benchmark_run=3 sending_interval="15000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: benchmark-runner.yml topic_prefix="ESBE" benchmark_run=1 sending_interval="10000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBE" benchmark_run=2 sending_interval="10000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBE" benchmark_run=3 sending_interval="10000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: benchmark-runner.yml topic_prefix="ESBF" benchmark_run=1 sending_interval="5000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBF" benchmark_run=2 sending_interval="5000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBF" benchmark_run=3 sending_interval="5000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: benchmark-runner.yml topic_prefix="ESBG" benchmark_run=1 sending_interval="3000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBG" benchmark_run=2 sending_interval="3000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBG" benchmark_run=3 sending_interval="3000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: benchmark-runner.yml topic_prefix="ESBH" benchmark_run=1 sending_interval="1000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBH" benchmark_run=2 sending_interval="1000" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBH" benchmark_run=3 sending_interval="1000" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: benchmark-runner.yml topic_prefix="ESBI" benchmark_run=1 sending_interval="500" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBI" benchmark_run=2 sending_interval="500" scale_factor=1
+- include: benchmark-runner.yml topic_prefix="ESBI" benchmark_run=3 sending_interval="500" scale_factor=1
+- include: execute-benchmark-run-result-merger.yml
+
+- include: execute-benchmark-scenario-result-merger.yml

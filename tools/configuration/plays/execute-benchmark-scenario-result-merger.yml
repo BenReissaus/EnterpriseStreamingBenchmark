@@ -1,0 +1,6 @@
+---
+
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - include: ../roles/benchmark/tasks/execute_benchmark_scenario_result_merger.yml

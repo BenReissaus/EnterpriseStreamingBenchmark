@@ -82,7 +82,7 @@ class DataProducerThreadTest extends FunSpec with MockitoSugar {
         |ts id dat10 dat11 dat12
       """.stripMargin)
     val duration = 1
-    val durationTimeUnit = TimeUnit.MILLISECONDS
+    val durationTimeUnit = TimeUnit.MINUTES
     val dataReader = new DataReader(source, columns, columnDelimiter = " ", dataColumnStart = 2, readInRam = false)
 
     val mockedKafkaProducer: KafkaProducer[String, String] = mock[KafkaProducer[String, String]]

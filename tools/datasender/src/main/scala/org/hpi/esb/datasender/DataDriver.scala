@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datasender.config._
+import org.hpi.esb.datasender.output.BenchmarkRunResultWriter
 
 import scala.io.Source
 
@@ -15,7 +16,7 @@ class DataDriver(config: Config) extends Logging {
   private val dataReader = createDataReader(config.dataReaderConfig)
   private val kafkaProducerProperties = createKafkaProducerProperties(config.kafkaProducerConfig)
   private val kafkaProducer = new KafkaProducer[String, String](kafkaProducerProperties)
-  private val resultHandler = new ResultHandler(config, Configs.benchmarkConfig, kafkaProducer)
+  private val resultHandler = new BenchmarkRunResultWriter(config, Configs.benchmarkConfig, kafkaProducer)
   private val dataProducer = createDataProducer(kafkaProducer, dataReader, resultHandler)
 
   def run(): Unit = {
@@ -44,7 +45,7 @@ class DataDriver(config: Config) extends Logging {
   }
 
   def createDataProducer(kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,
-                         resultHandler: ResultHandler): DataProducer = {
+                         resultHandler: BenchmarkRunResultWriter): DataProducer = {
 
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get
     val sendingInterval = config.dataSenderConfig.sendingInterval.get

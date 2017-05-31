@@ -19,7 +19,8 @@ lazy val commons = (project in file("tools/commons")).
     libraryDependencies ++= configHandlingDependency,
     libraryDependencies ++= scalaIODependencies,
     libraryDependencies ++= loggingDependencies,
-    libraryDependencies ++= csv
+    libraryDependencies ++= csv,
+    libraryDependencies ++= testDependencies
   ).
   settings(
     name := "Commons"

@@ -5,10 +5,11 @@ import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeU
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datasender.config.Configurable
+import org.hpi.esb.datasender.output.BenchmarkRunResultWriter
 import org.hpi.esb.util.OffsetManagement
 
 
-class DataProducer(resultHandler: ResultHandler, kafkaProducer: KafkaProducer[String, String],
+class DataProducer(resultHandler: BenchmarkRunResultWriter, kafkaProducer: KafkaProducer[String, String],
                    dataReader: DataReader, topics: List[String], numberOfThreads: Int,
                    sendingInterval: Int, sendingIntervalTimeUnit: TimeUnit,
                    duration: Long, durationTimeUnit: TimeUnit, singleColumnMode: Boolean) extends Logging with Configurable {

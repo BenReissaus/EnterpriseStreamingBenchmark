@@ -1,5 +1,6 @@
 package org.hpi.esb.datasender.config
 
+import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
 import pureconfig.loadConfigFromFiles
 import scopt.OptionParser
@@ -12,8 +13,14 @@ object ConfigHandler extends Logging {
   val dataSenderPath = s"$projectPath/tools/datasender"
   val configName = "datasender.conf"
   val userConfigPath = s"$dataSenderPath/$configName"
+  val resultsPath = s"$dataSenderPath/results"
 
-  def getConfig(args: Array[String]): Config = {
+  def resultFileName(currentTime: String): String = s"${Configs.benchmarkConfig.topicPrefix}_" +
+    s"${Configs.benchmarkConfig.benchmarkRun}_$currentTime.csv"
+
+  def resultFileNamePrefix(): String = s"${Configs.benchmarkConfig.topicPrefix}"
+
+  def getConfig(args: Array[String] = Array[String]()): Config = {
     val cliConfig = getCliConfig(args)
     val fileConfig = getFileConfig()
     mergeCliAndFileConfig(cliConfig, fileConfig)

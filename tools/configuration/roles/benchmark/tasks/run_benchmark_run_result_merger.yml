@@ -1,0 +1,5 @@
+---
+
+- shell: java -cp tools/datasender/target/scala-2.11/DataSender-assembly-0.1.0-SNAPSHOT.jar org.hpi.esb.datasender.output.BenchmarkRunResultMerger
+  args:
+    chdir: "~/{{ relative_repository_path }}"

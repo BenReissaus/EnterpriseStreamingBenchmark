@@ -21,7 +21,7 @@ object Configs {
 
   case class QueryConfig(queryName: String = "", inputTopic: String = "", outputTopic: String = "")
 
-  case class BenchmarkConfig(topicPrefix: String, topicPostfix: String, queries: List[String], scaleFactor: Int) {
+  case class BenchmarkConfig(topicPrefix: String, benchmarkRun: Int, queries: List[String], scaleFactor: Int) {
 
     val queryConfigs: List[QueryConfig]= for {
       s <- List.range(0, scaleFactor)
@@ -32,12 +32,16 @@ object Configs {
     val sourceTopics: List[String] = queryConfigs.map(_.inputTopic).distinct
     val sinkTopics: List[String] = queryConfigs.map(_.outputTopic).distinct
 
-    def getSourceName(stream: Int): String = {
-      s"$topicPrefix$stream$topicPostfix"
+    def getSourceName(streamId: Int): String = {
+      getTopicName(streamId)
     }
 
-    def getSinkName(stream: Int, query: String): String = {
-      s"$topicPrefix$stream$query$topicPostfix"
+    def getSinkName(streamId: Int, query: String): String = {
+      s"${getTopicName(streamId)}-$query"
+    }
+
+    def getTopicName(streamId: Int): String = {
+      s"$topicPrefix-$streamId-$benchmarkRun"
     }
   }
 
