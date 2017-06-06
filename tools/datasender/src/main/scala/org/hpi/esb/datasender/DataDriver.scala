@@ -6,17 +6,18 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig}
 import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datasender.config._
-import org.hpi.esb.datasender.output.BenchmarkRunResultWriter
+import org.hpi.esb.datasender.output.writers.DatasenderRunResultWriter
 
 import scala.io.Source
 
-class DataDriver(config: Config) extends Logging {
+class DataDriver() extends Logging {
 
   private val topics = Configs.benchmarkConfig.sourceTopics
+  private val config = ConfigHandler.config
   private val dataReader = createDataReader(config.dataReaderConfig)
   private val kafkaProducerProperties = createKafkaProducerProperties(config.kafkaProducerConfig)
   private val kafkaProducer = new KafkaProducer[String, String](kafkaProducerProperties)
-  private val resultHandler = new BenchmarkRunResultWriter(config, Configs.benchmarkConfig, kafkaProducer)
+  private val resultHandler = new DatasenderRunResultWriter(config, Configs.benchmarkConfig, kafkaProducer)
   private val dataProducer = createDataProducer(kafkaProducer, dataReader, resultHandler)
 
   def run(): Unit = {
@@ -45,13 +46,13 @@ class DataDriver(config: Config) extends Logging {
   }
 
   def createDataProducer(kafkaProducer: KafkaProducer[String, String], dataReader: DataReader,
-                         resultHandler: BenchmarkRunResultWriter): DataProducer = {
+                         resultHandler: DatasenderRunResultWriter): DataProducer = {
 
     val numberOfThreads = config.dataSenderConfig.numberOfThreads.get
-    val sendingInterval = config.dataSenderConfig.sendingInterval.get
-    val sendingIntervalTimeUnit = config.dataSenderConfig.getSendingIntervalTimeUnit()
-    val duration = config.dataSenderConfig.duration
-    val durationTimeUnit = config.dataSenderConfig.getDurationTimeUnit()
+    val sendingInterval = Configs.benchmarkConfig.sendingInterval
+    val sendingIntervalTimeUnit = Configs.benchmarkConfig.getSendingIntervalTimeUnit()
+    val duration = Configs.benchmarkConfig.duration
+    val durationTimeUnit = Configs.benchmarkConfig.getDurationTimeUnit()
     val singleColumnMode = config.dataSenderConfig.singleColumnMode
 
     new DataProducer(resultHandler, kafkaProducer, dataReader, topics, numberOfThreads,

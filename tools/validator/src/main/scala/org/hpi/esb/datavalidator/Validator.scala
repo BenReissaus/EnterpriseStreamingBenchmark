@@ -1,23 +1,20 @@
 package org.hpi.esb.datavalidator
 
-import java.text.SimpleDateFormat
-import java.util.Date
 import org.hpi.esb.commons.config.Configs.QueryNames._
 import org.hpi.esb.commons.config.Configs.{QueryConfig, benchmarkConfig}
-import org.hpi.esb.commons.output.{CSVOutput, Tabulator}
-import org.hpi.esb.datavalidator.config.Configurable
+import org.hpi.esb.commons.util.Logging
+import org.hpi.esb.datavalidator.configuration.Config.validatorConfig
 import org.hpi.esb.datavalidator.data.Record
 import org.hpi.esb.datavalidator.kafka.TopicHandler
-import org.hpi.esb.commons.util.Logging
-import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation, ValidationResult}
+import org.hpi.esb.datavalidator.output.writers.ValidatorRunResultWriter
+import org.hpi.esb.datavalidator.validation.{IdentityValidation, StatisticsValidation, Validation}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class Validator() extends Configurable with Logging {
+class Validator() extends Logging {
 
-  val currentTime = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
-  val resultFileName = s"$currentTime.csv"
   val startTime: Long = currentTimeInSecs()
 
   def execute(): Unit = {
@@ -31,13 +28,15 @@ class Validator() extends Configurable with Logging {
     val validationResults = getValidations(queryConfigs, topicHandlersByName)
       .map(_.execute())
 
+    val resultWriter = new ValidatorRunResultWriter()
+
     validationResults.foreach(future => future.onComplete {
       case Success(results) => logger.info(s"Finshed ${results.query}")
       case Failure(e) => logger.error(e.getMessage)
     })
 
     Future.sequence(validationResults).onComplete({
-      case Success(results) => outputResults(results); terminate()
+      case Success(results) => resultWriter.outputResults(results); terminate()
       case Failure(e) => logger.error(e.getMessage); terminate()
     })
   }
@@ -50,13 +49,7 @@ class Validator() extends Configurable with Logging {
     logger.info(s"Total execution time in seconds: $executionTime")
   }
 
-  def outputResults(results: List[ValidationResult]): Unit = {
-    val rows = results.map(_.getMeasuredResults)
-    val table = ValidationResult.getHeader :: rows
-
-    CSVOutput.write(table, resultsPath, resultFileName)
-    logger.info(Tabulator.format(table))
-  }
+  def currentTimeInSecs(): Long = System.currentTimeMillis() / 1000
 
   def getValidations(queryConfigs: List[QueryConfig], topicHandlersByName: Map[String, TopicHandler]): List[Validation[_ <: Record]] = {
     queryConfigs.map {
@@ -65,9 +58,7 @@ class Validator() extends Configurable with Logging {
         new IdentityValidation(topicHandlersByName(inputTopic), topicHandlersByName(outputTopic), AkkaManager.materializer)
 
       case QueryConfig(StatisticsQuery, inputTopic, outputTopic) =>
-        new StatisticsValidation(topicHandlersByName(inputTopic), topicHandlersByName(outputTopic), config.windowSize, AkkaManager.materializer)
+        new StatisticsValidation(topicHandlersByName(inputTopic), topicHandlersByName(outputTopic), validatorConfig.windowSize, AkkaManager.materializer)
     }
   }
-
-  def currentTimeInSecs(): Long = System.currentTimeMillis() / 1000
 }

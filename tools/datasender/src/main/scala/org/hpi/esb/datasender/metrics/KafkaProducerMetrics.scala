@@ -1,7 +1,8 @@
 package org.hpi.esb.datasender.metrics
 
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.hpi.esb.commons.output.ValueFormatter.round
+import org.hpi.esb.commons.output.Util._
+
 
 import scala.collection.JavaConversions._
 

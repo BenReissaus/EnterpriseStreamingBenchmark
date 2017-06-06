@@ -6,10 +6,9 @@ import org.hpi.esb.datasender.config.ConfigHandler
 object Main extends Logging {
 
   def main(args: Array[String]): Unit = {
-    val config = ConfigHandler.getConfig(args)
-    setLogLevel(config.verbose)
+    setLogLevel(ConfigHandler.config.verbose)
     logger.info("Starting Datasender...")
-    new DataDriver(config).run()
+    new DataDriver().run()
   }
 
   def setLogLevel(verbose: Boolean): Unit = {

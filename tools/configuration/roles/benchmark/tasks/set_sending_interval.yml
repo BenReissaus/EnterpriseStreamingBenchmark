@@ -1,6 +1,6 @@
 
 - replace:
-    path: '{{ home }}/{{ relative_repository_path }}/tools/datasender/datasender.conf'
-    regexp: '^dataSenderConfig.sendingInterval = .*$'
-    replace: 'dataSenderConfig.sendingInterval = {{ interval }}'
+    path: '{{ home }}/{{ relative_repository_path }}/tools/commons/commons.conf'
+    regexp: '^sendingInterval = .*$'
+    replace: 'sendingInterval = {{ interval }}'
   when: interval is defined

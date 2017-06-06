@@ -1,0 +1,5 @@
+---
+
+- shell: java -cp tools/validator/target/scala-2.11/Validator-assembly-0.1.0-SNAPSHOT.jar org.hpi.esb.datavalidator.output.writers.ValidatorScenarioResultWriter
+  args:
+    chdir: "~/{{ relative_repository_path }}"

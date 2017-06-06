@@ -1,6 +1,6 @@
 package org.hpi.esb.datasender.metrics
 
-import org.hpi.esb.commons.output.ValueFormatter.roundPrecise
+import org.hpi.esb.commons.output.Util._
 import org.hpi.esb.util.OffsetManagement
 
 case class SendResult(expectedRecordNumber: Long = 0, failedSends: Long = 0) {

@@ -3,7 +3,7 @@ package org.hpi.esb.datavalidator.validation
 import akka.NotUsed
 import akka.stream._
 import akka.stream.scaladsl.{Flow, GraphDSL}
-import org.hpi.esb.datavalidator.config.Configurable
+import org.hpi.esb.datavalidator.configuration.Config
 import org.hpi.esb.datavalidator.data.{SimpleRecord, Statistics}
 import org.hpi.esb.datavalidator.kafka.TopicHandler
 import org.hpi.esb.datavalidator.validation.graphstage.{AccumulateWhileUnchanged, IgnoreLastElements, ZipWhileEitherAvailable}
@@ -11,7 +11,7 @@ import org.hpi.esb.datavalidator.validation.graphstage.{AccumulateWhileUnchanged
 class StatisticsValidation(inTopicHandler: TopicHandler,
                            outTopicHandler: TopicHandler, windowSize: Long,
                            materializer: ActorMaterializer)
-  extends Validation[Statistics](inTopicHandler, outTopicHandler, materializer) with Configurable {
+  extends Validation[Statistics](inTopicHandler, outTopicHandler, materializer) {
 
   override val valueName = "Statistics"
   override val queryName = "Statistics Query"

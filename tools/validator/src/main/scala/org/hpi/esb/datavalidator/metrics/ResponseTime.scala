@@ -1,7 +1,7 @@
 package org.hpi.esb.datavalidator.metrics
 
 import com.codahale.metrics.{Histogram, Snapshot, UniformReservoir}
-import org.hpi.esb.commons.output.ValueFormatter.round
+import org.hpi.esb.commons.output.Util._
 
 object ResponseTime {
   // in milliseconds
@@ -9,6 +9,10 @@ object ResponseTime {
   val percentile: Double = 0.90
   val precision = 2
   val header = List("RT-Fulfilled", "RT-90%ile", "RT-Min", "RT-Max", "RT-Mean")
+
+  def fulfillsConstraint(value: Double): Boolean = {
+    value < ResponseTime.referenceValue
+  }
 }
 
 class ResponseTime extends BenchmarkResult with ConstrainedMetric {
@@ -38,8 +42,9 @@ class ResponseTime extends BenchmarkResult with ConstrainedMetric {
   def getMax: Double = round(snapshot.getMax, ResponseTime.precision)
 
   override def fulfillsConstraint: Boolean = {
-    getPercentileValue < ResponseTime.referenceValue
+    ResponseTime.fulfillsConstraint(getPercentileValue)
   }
+
 
   def getPercentileValue: Double = {
     round(snapshot.getValue(ResponseTime.percentile), ResponseTime.precision)

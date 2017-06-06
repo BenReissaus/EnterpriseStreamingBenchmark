@@ -7,5 +7,3 @@ case class CliConfig(dataInputPath: Option[String] = None,
   def isValid: Boolean = (sendingInterval.isEmpty || isValidSendingInterval(sendingInterval)) &&
     (dataInputPath.isEmpty || existsFilePath(dataInputPath.get))
 }
-
-
