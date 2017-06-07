@@ -39,7 +39,8 @@ class ValidatorSeriesResultWriterTest extends FunSpec {
         ("Identity", "Identity", "Identity"), // Query
         ("true", "true", "true"), // Correct
         ("1500.0", "1900.0", "1700.0"), // RT-90%ile
-        ("true", "true", "true") // RT-Fulfilled
+        ("true", "true", "true"), // RT-Fulfilled
+        ("10.0", "20.0", "15.0") // ValidatorRuntime
       )
       testValues(writer, header, valuesToTest)
     }
@@ -54,7 +55,8 @@ class ValidatorSeriesResultWriterTest extends FunSpec {
         ("Identity", "Identity", "Identity"), // Query
         ("false", "true", "false"), // Correct
         ("1500.0", "1900.0", "1700.0"), // RT-90%ile
-        ("true", "true", "true") // RT-Fulfilled
+        ("true", "true", "true"), // RT-Fulfilled
+        ("10.0", "20.0", "15.0") // ValidatorRuntime
       )
       testValues(writer, header, valuesToTest)
     }
@@ -69,7 +71,8 @@ class ValidatorSeriesResultWriterTest extends FunSpec {
         ("Identity", "Identity", "Identity"), // Query
         ("true", "true", "true"), // Correct
         ("1900", "2500.0", "2200.0"), // RT-90%ile
-        ("true", "false", "false") // RT-Fulfilled
+        ("true", "false", "false"), // RT-Fulfilled
+        ("10.0", "20.0", "15.0") // ValidatorRuntime
       )
       testValues(writer, header, valuesToTest)
     }

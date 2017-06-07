@@ -29,7 +29,7 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
   val toStatistics = Flow[ConsumerRecord[String, String]]
     .map(record => Statistics.deserialize(record.value(), record.timestamp()))
 
-  def execute(): Future[ValidationResult] = {
+  def execute(): Future[QueryValidationState] = {
 
     val partialSource = createSource()
     val partialSink = createSink()
@@ -48,14 +48,14 @@ abstract class Validation[T <: Record](inTopicHandler: TopicHandler,
     runnableGraph.run()(materializer)
   }
 
-  def createSink(): Sink[(Option[T], Option[T]), Future[ValidationResult]] = {
+  def createSink(): Sink[(Option[T], Option[T]), Future[QueryValidationState]] = {
 
-    Sink.fold[ValidationResult, (Option[T], Option[T])](new ValidationResult(queryName, inTopicHandler.topicName)) {
-      case (validationResult, pair) => updateAndGetValidationResult(validationResult, pair)
+    Sink.fold[QueryValidationState, (Option[T], Option[T])](new QueryValidationState(queryName, inTopicHandler.topicName)) {
+      case (validationResult, pair) => updateAndGetValidationState(validationResult, pair)
     }
   }
 
-  def updateAndGetValidationResult(validationResult: ValidationResult, pair: (Option[T], Option[T])): ValidationResult = {
+  def updateAndGetValidationState(validationResult: QueryValidationState, pair: (Option[T], Option[T])): QueryValidationState = {
     pair match {
 
       case (Some(expectedValue), (Some(actualValue))) =>

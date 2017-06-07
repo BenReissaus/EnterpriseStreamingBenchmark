@@ -25,12 +25,14 @@ class ValidatorSeriesResult(l: List[ValidatorResultRow]) extends SeriesResult {
     val resultValues = resultRows.map(_.resultValues)
 
     val averagePercentiles = average(resultValues.map(row => row.percentile))
+    val averageRuntime = average(resultValues.map(row => row.validatorRunTime))
 
     val mergedResultValues = ResultValues(
       query = resultValues.head.query,
       correct = resultValues.forall(row => row.correct),
       percentile = averagePercentiles,
-      rtFulfilled = ResponseTime.fulfillsConstraint(averagePercentiles)
+      rtFulfilled = ResponseTime.fulfillsConstraint(averagePercentiles),
+      validatorRunTime = averageRuntime
     )
 
     ValidatorResultRow(configValues, mergedResultValues)

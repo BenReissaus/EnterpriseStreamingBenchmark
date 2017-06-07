@@ -24,7 +24,7 @@ object ValidatorSeriesResultWriter extends Logging {
 
     val inputFilesPrefix = Configs.benchmarkConfig.topicPrefix
     val resultsPath: String = Config.resultsPath
-    val outputFileName = s"Series_Result_$inputFilesPrefix"
+    val outputFileName = s"Series_Result_$inputFilesPrefix.csv"
 
     val merger = new ValidatorSeriesResultWriter(
       inputFilesPrefix = inputFilesPrefix,

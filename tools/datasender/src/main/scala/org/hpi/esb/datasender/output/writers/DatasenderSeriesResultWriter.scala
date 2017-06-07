@@ -22,7 +22,7 @@ object DatasenderSeriesResultWriter extends Logging {
   def main(args: Array[String]): Unit = {
     val inputFilesPrefix = Configs.benchmarkConfig.topicPrefix
     val resultsPath: String = ConfigHandler.resultsPath
-    val outputFileName = s"Series_Result_$inputFilesPrefix"
+    val outputFileName = s"Series_Result_$inputFilesPrefix.csv"
 
     val seriesResultWriter = new DatasenderSeriesResultWriter(
       inputFilesPrefix = inputFilesPrefix,

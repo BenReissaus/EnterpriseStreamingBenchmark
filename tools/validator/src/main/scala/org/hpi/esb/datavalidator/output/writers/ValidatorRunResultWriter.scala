@@ -7,27 +7,40 @@ import org.hpi.esb.commons.config.Configs
 import org.hpi.esb.commons.output.{CSVOutput, Tabulator}
 import org.hpi.esb.commons.util.Logging
 import org.hpi.esb.datavalidator.configuration.Config.{resultFileName, resultsPath}
-import org.hpi.esb.datavalidator.output.model.ConfigValues
-import org.hpi.esb.datavalidator.validation.ValidationResult
+import org.hpi.esb.datavalidator.output.model.{ConfigValues, ResultValues}
+import org.hpi.esb.datavalidator.validation.QueryValidationState
 
 class ValidatorRunResultWriter extends Logging {
 
-  val currentTime: String = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
+  val currentTimeString: String = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
 
-  def outputResults(results: List[ValidationResult]): Unit = {
+  def outputResults(queryValidationStates: List[QueryValidationState], startTime: Long): Unit = {
 
-    val configValues = ConfigValues.get(Configs.benchmarkConfig).toList()
+    val endTime = System.currentTimeMillis() / 1000
+    val runTime = endTime - startTime
+
+    val table = createOutputTable(queryValidationStates, runTime)
+    CSVOutput.write(table, resultsPath, resultFileName(currentTimeString))
+    logger.info(Tabulator.format(table))
+  }
+
+  def createOutputTable(queryValidationStates: List[QueryValidationState], runTime: Long): List[List[String]] = {
     val configValuesHeader = ConfigValues.header
+    val configValues = ConfigValues.get(Configs.benchmarkConfig).toList()
 
-    val resultValues = results.map(_.getMeasuredResults)
-    val resultValuesHeader = ValidationResult.getHeader
+    val resultValuesHeader = QueryValidationState.getHeader ++ List(ResultValues.VALIDATOR_RUNTIME)
+    val resultValues = queryValidationStates.map(
+      queryValidationState => getResultValues(queryValidationState, runTime)
+    )
 
     val header = configValuesHeader ++ resultValuesHeader
-    val values = resultValues.map(resultValueRow => configValues ++ resultValueRow)
+    val rows = resultValues.map(resultValueRow => configValues ++ resultValueRow)
 
-    val table = header :: values
+    val table = header :: rows
+    table
+  }
 
-    CSVOutput.write(table, resultsPath, resultFileName(currentTime))
-    logger.info(Tabulator.format(table))
+  def getResultValues(queryValidationState: QueryValidationState, runTime: Long): List[String] = {
+    queryValidationState.getMeasuredResults ++ List(runTime.toString)
   }
 }

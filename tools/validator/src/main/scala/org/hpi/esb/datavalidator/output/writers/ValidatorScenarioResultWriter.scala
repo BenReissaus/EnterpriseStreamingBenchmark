@@ -20,7 +20,7 @@ object ValidatorScenarioResultWriter {
   def main(args: Array[String]): Unit = {
     val inputFilesPrefix: String = "Series_Result"
     val resultsPath: String = Config.resultsPath
-    val outputFileName = "Scenario_Result"
+    val outputFileName = "Scenario_Result.csv"
 
     val merger = new ValidatorScenarioResultWriter(
       inputFilesPrefix = inputFilesPrefix,

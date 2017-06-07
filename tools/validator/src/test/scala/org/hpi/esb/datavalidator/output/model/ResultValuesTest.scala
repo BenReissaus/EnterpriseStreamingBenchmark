@@ -8,17 +8,20 @@ class ResultValuesTest extends FunSpec {
   val correct = "true"
   val percentile = "1.3"
   val rtFulfilled = "true"
+  val validatorRunTime = "10.0"
+
   val exampleResultValues = ResultValues(
     query = query,
     correct = correct.toBoolean,
     percentile = percentile.toDouble,
-    rtFulfilled = rtFulfilled.toBoolean
+    rtFulfilled = rtFulfilled.toBoolean,
+    validatorRunTime = validatorRunTime.toDouble
   )
 
   describe("toList") {
     it("should return a list representation of the result values") {
       val exampleResultValuesList = exampleResultValues.toList()
-      val expectedList = List(query, correct, percentile, rtFulfilled)
+      val expectedList = List(query, correct, percentile, rtFulfilled, validatorRunTime)
       assert(exampleResultValuesList == expectedList)
     }
   }
@@ -29,7 +32,8 @@ class ResultValuesTest extends FunSpec {
         QUERY_COLUMN -> query,
         CORRECT_COLUMN -> correct,
         PERCENTILE_COLUMN -> percentile,
-        RT_FULFILLED -> rtFulfilled
+        RT_FULFILLED -> rtFulfilled,
+        VALIDATOR_RUNTIME -> validatorRunTime
       )
       val resultValuesFromMap = new ResultValues(valueMap)
 

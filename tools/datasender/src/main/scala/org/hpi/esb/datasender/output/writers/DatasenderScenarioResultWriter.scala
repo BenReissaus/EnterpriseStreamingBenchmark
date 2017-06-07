@@ -20,7 +20,7 @@ object DatasenderScenarioResultWriter {
   def main(args: Array[String]): Unit = {
     val inputFilesPrefix: String = "Series_Result"
     val resultsPath: String = ConfigHandler.resultsPath
-    val outputFileName = "Scenario_Result"
+    val outputFileName = "Scenario_Result.csv"
 
     val merger = new DatasenderScenarioResultWriter(
       inputFilesPrefix = inputFilesPrefix,

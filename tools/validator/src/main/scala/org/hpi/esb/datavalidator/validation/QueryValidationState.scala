@@ -2,13 +2,13 @@ package org.hpi.esb.datavalidator.validation
 
 import org.hpi.esb.datavalidator.metrics.{Correctness, ResponseTime}
 
-object ValidationResult {
+object QueryValidationState {
   def getHeader: List[String] = List("Query", "Topic") ++ Correctness.header ++ ResponseTime.header
 }
 
-class ValidationResult(val query: String, topicName: String,
-                       val correctness: Correctness = new Correctness(),
-                       val responseTime: ResponseTime = new ResponseTime()) {
+class QueryValidationState(val query: String, topicName: String,
+                           val correctness: Correctness = new Correctness(),
+                           val responseTime: ResponseTime = new ResponseTime()) {
 
   def updateCorrectness(isCorrect: Boolean): Unit = {
     correctness.update(isCorrect)

@@ -41,8 +41,8 @@ trait ValidationTestHelpers {
   }
 
   def combineSourceWithSink[T](source: Source[OptionPair[T], NotUsed],
-                               sink: Sink[OptionPair[T], Future[ValidationResult]]):
-    Graph[ClosedShape.type, Future[ValidationResult]] = {
+                               sink: Sink[OptionPair[T], Future[QueryValidationState]]):
+    Graph[ClosedShape.type, Future[QueryValidationState]] = {
 
     GraphDSL.create(sink) { implicit builder =>
       s =>

@@ -36,17 +36,13 @@ class Validator() extends Logging {
     })
 
     Future.sequence(validationResults).onComplete({
-      case Success(results) => resultWriter.outputResults(results); terminate()
+      case Success(results) => resultWriter.outputResults(results, startTime); terminate()
       case Failure(e) => logger.error(e.getMessage); terminate()
     })
   }
 
   def terminate(): Unit = {
     AkkaManager.terminate()
-    val endTime = currentTimeInSecs()
-    val executionTime = endTime - startTime
-    logger.info(s"End time: $endTime")
-    logger.info(s"Total execution time in seconds: $executionTime")
   }
 
   def currentTimeInSecs(): Long = System.currentTimeMillis() / 1000
