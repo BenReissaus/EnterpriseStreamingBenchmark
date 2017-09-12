@@ -83,27 +83,3 @@ running the benchmark (`tools/configuration/plays/benchmark-runner.yml`).
  
 If you prefer running the modules without Ansible you can compile the whole project with `sbt assembly` or a specific module with `sbt project [module]:assembly`.
 The created jars can be run with `java -jar /path/to/jar.jar`.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
