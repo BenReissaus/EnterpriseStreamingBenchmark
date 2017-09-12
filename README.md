@@ -17,7 +17,7 @@ the queries.
 
 
 #### Benchmark Architecture 
-![Benchmark Architecture](images/Architecture_Overview.pdf?raw=true)
+![Benchmark Architecture](images/Architecture_Overview.jpg?raw=true)
 
 #### Performance Metrics
 
@@ -28,7 +28,7 @@ the queries.
 
 
 #### Benchmark Parameters
-![Benchmark Dataflow](images/Benchmark_Dataflow.pdf?raw=true)
+![Benchmark Dataflow](images/Benchmark_Dataflow.jpg?raw=true)
 
 #### Toolkit
 Datasender
