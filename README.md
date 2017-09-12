@@ -42,6 +42,8 @@ These parameters should be set in `tools/commons/commons.conf`.
 
 ### 5. Modules
 
+
+
 ##### `tools/commons`
 Contains code that is used by multiple modules and the file `commons.conf` in which the main benchmark parameters are set. 
 
@@ -74,7 +76,13 @@ The following image shows how the Data Stream Management System executes the Ide
 ![Benchmark Dataflow](images/Benchmark_Dataflow.jpg?raw=true)
 
 
+### 7. Benchmark Execution
 
+To run the benchmark on a cluster, it is advisable to install Ansible. The provided scripts allow installing the necessary software and 
+running the benchmark (`tools/configuration/plays/benchmark-runner.yml`).
+ 
+If you prefer running the modules without Ansible you can compile the whole project with `sbt assembly` or a specific module with `sbt project [module]:assembly`.
+The created jars can be run with `java -jar /path/to/jar.jar`.
 
 
 
