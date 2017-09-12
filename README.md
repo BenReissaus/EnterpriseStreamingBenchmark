@@ -49,7 +49,7 @@ Contains code that is used by multiple modules and the file `commons.conf` in wh
 Contains the datasender. Kafka-specific configurations can be done in `tools/datasender/datasender.conf`.
 
 ##### `tools/validator`
-Contains the validator. Makes use of [Akka Stream Kafka Library](http://doc.akka.io/docs/akka-stream-kafka/current/home.html). 
+Contains the validator - a streaming application which makes use of the [Akka Stream Kafka Library](http://doc.akka.io/docs/akka-stream-kafka/current/home.html). 
 
 ##### `tools/configuration`
 Contains setup and configuration scripts and a benchmark runner. All of them are defined with Ansible. 
@@ -58,7 +58,7 @@ Contains setup and configuration scripts and a benchmark runner. All of them are
 Contains utility functions to create/delete/redistribute Kafka topics and to get current offsets in topics.
 
 ##### `implementation`
-Partial benchmark implementation with Apache Flink for Identity Query (incoming events are written as are) and Statistics Query (min, max, mean, sum and count for tumbling window of 1 second).
+Partial benchmark implementation with Apache Flink for Identity Query (incoming events are written back to Kafka without modification) and Statistics Query (min, max, mean, sum and count for tumbling window of 1 second).
 Each query is run in a separate job to be able to execute queries in parallel but still keep the order of records. 
 
 ### 6. Workflow
